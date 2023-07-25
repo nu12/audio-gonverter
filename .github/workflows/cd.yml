@@ -1,0 +1,17 @@
+name: CD
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.20
+    steps:
+    - uses: actions/checkout@v3
+    - run: |
+        echo ${{ secrets.TOKEN }} | docker login ghcr.io -u ${{github.actor}} --password-stdin
+        docker build -t ghcr.io/nu12/audio-gonverter:latest .
+        docker push ghcr.io/nu12/audio-gonverter:latest
