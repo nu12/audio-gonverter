@@ -19,8 +19,6 @@ jobs:
         version: v1.53
         
     - name: Tests
-      # env:
-      #   GOPATH: /home/runner/work/nu12/audio-gonverter
       run: |
         go test -v ./...
 
