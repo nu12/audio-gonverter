@@ -10,8 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/nu12/audio-gonverter:workflow
     steps:
     - uses: actions/checkout@v3
       with:
@@ -32,11 +30,12 @@ jobs:
       with:
         push: true
         tags: ghcr.io/nu12/audio-gonverter:latest
+        outputs: type=tar,dest=image.tar
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ghcr.io/nu12/audio-gonverter:${{ github.sha }}
+        input: image.tar
         format: 'sarif'
         output: 'image.sarif'
         vuln-type: 'os,library'
