@@ -7,29 +7,39 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/nu12/audio-gonverter:workflow
     steps:
     - uses: actions/checkout@v3
-    - name: Check format
+    - uses: actions/setup-go@v4
+      with:
+        go-version: 1.20.6
+    
+    - name: Lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: v1.53
+        
+    - name: Tests
       run: |
-        gofmt -d cmd/* | tee -a fmt
-        if [ "$(cat fmt)" != "" ]
-        then
-          echo "Code not well formated. See pre-commit hook in README."
-          exit 1
-        fi
-    - name: Run tests
-      run: |
-        go test -v cmd/*.go
+        go test -v ./...
 
-    - name: Build image
-      run: |
-        docker build -t ghcr.io/nu12/audio-gonverter:${{ github.sha }} .
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-    - name: Run trivy
-      run: |
-        trivy image ghcr.io/nu12/audio-gonverter:${{ github.sha }} --format sarif --output image.sarif
+    - name: Build
+      uses: docker/build-push-action@v4
+      with:
+        push: false
+        tags: ghcr.io/nu12/audio-gonverter:${{ github.sha }}
+        outputs: type=docker,dest=image.tar
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        input: image.tar
+        format: 'sarif'
+        output: 'image.sarif'
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
 
     - name: Upload trivy results
       uses: github/codeql-action/upload-sarif@v2

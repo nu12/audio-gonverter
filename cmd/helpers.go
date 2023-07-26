@@ -11,7 +11,7 @@ func (app *Config) loadEnv(required []string) error {
 	for _, env := range required {
 		val, isSet := os.LookupEnv(env)
 		if !isSet {
-			return errors.New(fmt.Sprintf("Variable %s was not found", env))
+			return fmt.Errorf("Variable %s was not found", env)
 		}
 		app.Env[env] = val
 	}
