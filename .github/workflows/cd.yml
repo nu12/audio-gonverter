@@ -11,6 +11,8 @@ jobs:
       image: ghcr.io/nu12/audio-gonverter:workflow
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
     - run: |
         TAG=$(svu c)
         NEXT=$(svu n)
