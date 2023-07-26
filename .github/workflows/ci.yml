@@ -22,6 +22,8 @@ jobs:
           exit 1
         fi
     - name: Run tests
+      env:
+        GOPATH: /home/runner/work/nu12/audio-gonverter
       run: |
         go test -v cmd/*.go
 
