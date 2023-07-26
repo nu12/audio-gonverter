@@ -8,5 +8,5 @@ Pre-commit hook:
 #!/bin/bash
 
 go fmt cmd/*
-go test -v cmd/*
+go test -v cmd/*.go
 ```
