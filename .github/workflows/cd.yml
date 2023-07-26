@@ -35,6 +35,7 @@ jobs:
     - name: Create GH release
       env:
         TAG: ${{steps.release.outputs.next}}
+        GH_TOKEN: ${{ github.TOKEN }}
       run: |
         git tag $TAG
         git push --tags
