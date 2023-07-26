@@ -14,7 +14,7 @@ jobs:
     - name: Check format
       run: |
         gofmt -d cmd/* | tee -a fmt
-        if [[ -s fmt ]]
+        if [ "$(cat fmt)" != "" ]
         then
           echo "Code not well formated. See pre-commit hook in README."
           exit 1
