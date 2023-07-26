@@ -8,10 +8,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: golang:1.20
+      image: ghcr.io/nu12/audio-gonverter:workflow
     steps:
     - uses: actions/checkout@v3
     - run: |
-        echo ${{ secrets.TOKEN }} | docker login ghcr.io -u ${{github.actor}} --password-stdin
-        docker build -t ghcr.io/nu12/audio-gonverter:latest .
-        docker push ghcr.io/nu12/audio-gonverter:latest
+        TAG=$(svu c)
+        NEXT=$(svu n)
+
+        if ["$TAG" != "$NEXT"]
+        then
+          git tag $NEXT
+          git push --tags
+
+          gh release create $NEXT
+
+          echo ${{ secrets.TOKEN }} | docker login ghcr.io -u ${{github.actor}} --password-stdin
+          docker build -t ghcr.io/nu12/audio-gonverter:$NEXT -t ghcr.io/nu12/audio-gonverter:latest .
+          docker push ghcr.io/nu12/audio-gonverter:$NEXT ghcr.io/nu12/audio-gonverter:latest
+        fi
+        
