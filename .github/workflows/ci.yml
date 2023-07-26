@@ -21,7 +21,7 @@ jobs:
         fi
     - name: Run tests
       run: |
-        go test -v cmd/*
+        go test -v cmd/*.go
 
     - name: Build image
       run: |
