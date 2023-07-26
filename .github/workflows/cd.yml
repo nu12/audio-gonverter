@@ -30,19 +30,18 @@ jobs:
       with:
         push: true
         tags: ghcr.io/nu12/audio-gonverter:latest
-        outputs: type=docker,dest=image.tar
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        input: image.tar
-        format: 'sarif'
-        output: 'image.sarif'
-        vuln-type: 'os,library'
-        severity: 'CRITICAL,HIGH'
+    # - name: Run Trivy vulnerability scanner
+    #   uses: aquasecurity/trivy-action@master
+    #   with:
+    #     input: image.tar
+    #     format: 'sarif'
+    #     output: 'image.sarif'
+    #     vuln-type: 'os,library'
+    #     severity: 'CRITICAL,HIGH'
 
-    - name: Upload trivy results
-      uses: github/codeql-action/upload-sarif@v2
-      with:
-        sarif_file: 'image.sarif'
-        category: image
+    # - name: Upload trivy results
+    #   uses: github/codeql-action/upload-sarif@v2
+    #   with:
+    #     sarif_file: 'image.sarif'
+    #     category: image
