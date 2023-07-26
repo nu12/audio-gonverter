@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -30,7 +31,8 @@ func TestLoadEnv(t *testing.T) {
 
 // Test startWeb
 type TestServer struct {
-	Addr string
+	Addr    string
+	Handler http.Handler
 }
 
 func (*TestServer) ListenAndServe() error {

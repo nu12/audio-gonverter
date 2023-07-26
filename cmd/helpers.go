@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -19,12 +18,13 @@ func (app *Config) loadEnv(required []string) error {
 	return nil
 }
 
+// For testability
+type CustomHTTPServer interface {
+	ListenAndServe() error
+}
+
 func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
 	log.Println("Stating Web service")
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello, gonverter")
-	})
 
 	err := s.ListenAndServe()
 	if err != nil {

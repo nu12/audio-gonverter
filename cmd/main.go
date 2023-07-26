@@ -11,18 +11,15 @@ const (
 )
 
 type Config struct {
-	Env map[string]string
-}
-
-// For testability
-type CustomHTTPServer interface {
-	ListenAndServe() error
+	TemplatesPath string
+	Env           map[string]string
 }
 
 func main() {
 	log.Println("audio-gonverter starts here")
 	app := Config{
-		Env: map[string]string{},
+		TemplatesPath: "./cmd/templates/",
+		Env:           map[string]string{},
 	}
 
 	err := app.loadEnv([]string{"WEB_ENABLED", "WORKER_ENABLED"})
@@ -34,7 +31,8 @@ func main() {
 
 	if app.Env["WEB_ENABLED"] == "true" {
 		go app.startWeb(c, &http.Server{
-			Addr: "0.0.0.0:8080",
+			Addr:    "0.0.0.0:8080",
+			Handler: app.routes(),
 		})
 	}
 
