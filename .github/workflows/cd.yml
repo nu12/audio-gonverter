@@ -27,7 +27,7 @@ jobs:
 
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
         echo "next=$NEXT" >> $GITHUB_OUTPUT
-        echo "$CURRENT/$NEXT" >> $GITHUB_SUMMARY
+        echo "$CURRENT/$NEXT" >> $GITHUB_STEP_SUMMARY
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
