@@ -35,7 +35,7 @@ jobs:
       with:
         push: false
         tags: ghcr.io/nu12/audio-gonverter:${{ github.sha }}
-        outputs: type=tar,dest=image.tar
+        outputs: type=docker,dest=image.tar
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
