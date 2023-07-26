@@ -12,6 +12,9 @@ permissions:
 
 jobs:
   release:
+    outputs:
+      next: ${{steps.release.outputs.next}}
+      current:  ${{steps.release.outputs.current}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -33,6 +36,7 @@ jobs:
         echo "$CURRENT/$NEXT" >> $GITHUB_STEP_SUMMARY
 
     - name: Create GH release
+      if: steps.release.outputs.next != steps.release.outputs.current
       env:
         TAG: ${{steps.release.outputs.next}}
         GH_TOKEN: ${{ github.TOKEN }}
@@ -41,6 +45,16 @@ jobs:
         git push --tags
 
         gh release create $TAG
+
+   build:
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: needs.release.outputs.next != needs.release.outputs.current
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version: 1.20.6
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -56,8 +70,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         push: true
-        tags: ghcr.io/nu12/audio-gonverter:latest
-        #,ghcr.io/nu12/audio-gonverter:${{ steps.release.outputs.next }}
+        tags: ghcr.io/nu12/audio-gonverter:latest,ghcr.io/nu12/audio-gonverter:${{ needs.release.outputs.next }}
 
     # - name: Run Trivy vulnerability scanner
     #   uses: aquasecurity/trivy-action@master
