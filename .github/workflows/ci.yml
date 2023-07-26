@@ -25,7 +25,7 @@ jobs:
       env:
         GOPATH: /home/runner/work/nu12/audio-gonverter
       run: |
-        go test -v cmd/*.go
+        go test -v ./...
 
     - name: Build image
       run: |
