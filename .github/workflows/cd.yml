@@ -14,7 +14,7 @@ jobs:
   release:
     outputs:
       next: ${{steps.release.outputs.next}}
-      current:  ${{steps.release.outputs.current}}
+      current: ${{steps.release.outputs.current}}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -46,7 +46,7 @@ jobs:
 
         gh release create $TAG
 
-   build:
+  build:
     runs-on: ubuntu-latest
     needs: [release]
     if: needs.release.outputs.next != needs.release.outputs.current
