@@ -27,13 +27,23 @@ jobs:
       run: |
         go test -v ./...
 
-    - name: Build image
-      run: |
-        docker build -t ghcr.io/nu12/audio-gonverter:${{ github.sha }} .
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-    - name: Run trivy
-      run: |
-        trivy image ghcr.io/nu12/audio-gonverter:${{ github.sha }} --format sarif --output image.sarif
+    - name: Build
+      uses: docker/build-push-action@v4
+      with:
+        push: false
+        tags: ghcr.io/nu12/audio-gonverter:${{ github.sha }}
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ghcr.io/nu12/audio-gonverter:${{ github.sha }}
+        format: 'sarif'
+        output: 'image.sarif'
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
 
     - name: Upload trivy results
       uses: github/codeql-action/upload-sarif@v2
