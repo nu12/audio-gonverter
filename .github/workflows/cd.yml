@@ -3,7 +3,6 @@ on:
   push:
     branches:
     - main
-    - chore/version-release-analysis
 
 permissions:
   contents: write
@@ -31,7 +30,8 @@ jobs:
 
         echo "current=$CURRENT" >> $GITHUB_OUTPUT
         echo "next=$NEXT" >> $GITHUB_OUTPUT
-        echo "$CURRENT/$NEXT" >> $GITHUB_STEP_SUMMARY
+        echo "Current version: $CURRENT" >> $GITHUB_STEP_SUMMARY
+        echo "Next version: $NEXT" >> $GITHUB_STEP_SUMMARY
 
   release:
     runs-on: ubuntu-latest
