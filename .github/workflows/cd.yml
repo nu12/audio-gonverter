@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - main
+    - chore/version-release-analysis
 
 permissions:
   contents: write
