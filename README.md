@@ -2,7 +2,7 @@
 
 ## Development 
 
-Add this `pre-commit` hook:
+Suggested `pre-commit` hook:
 
 ```bash
 #!/usr/bin/env bash
@@ -11,7 +11,7 @@ go fmt cmd/*
 go test -v ./...
 ```
 
-Add this `commit-msg` hook:
+Suggested `commit-msg` hook:
 
 ```bash
 #!/usr/bin/env bash
@@ -35,4 +35,15 @@ if ! echo "$commitTitle" | grep -qE '^(?:|feat|fix|docs|style|refactor|perf|test
 	echo "Please see https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#commit-message-format"
 	exit 1
 fi
+```
+
+Run locally with:
+```bash
+source .env
+go run cmd/main.go cmd/helpers.go cmd/routes.go
+```
+
+Or using docker-compose:
+```bash
+docker compose up --build
 ```
