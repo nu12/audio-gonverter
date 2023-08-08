@@ -1,8 +1,9 @@
 package main
 
 import (
-	"log"
 	"net/http"
+
+	"github.com/nu12/audio-gonverter/internal/logging"
 )
 
 const (
@@ -16,8 +17,11 @@ type Config struct {
 	Env             map[string]string
 }
 
+var log = logging.NewLogger()
+
 func main() {
-	log.Println("audio-gonverter starts here")
+	log.Debug("audio-gonverter starts here")
+
 	app := Config{
 		TemplatesPath:   "./cmd/templates/",
 		StaticFilesPath: "./cmd/static/",
@@ -30,7 +34,7 @@ func main() {
 		"COMMIT",
 	})
 	if err != nil {
-		log.Panicln(err)
+		log.Fatal(err)
 	}
 
 	c := make(chan error, 1)
@@ -49,6 +53,6 @@ func main() {
 
 	// Panic with error
 	for err := range c {
-		log.Panicln(err)
+		log.Fatal(err)
 	}
 }
