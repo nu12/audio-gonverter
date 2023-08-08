@@ -20,7 +20,8 @@ jobs:
         
     - name: Tests
       run: |
-        go test -v ./...
+        go test -coverprofile cover.out -v ./...
+        go tool cover -func=cover.out
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2

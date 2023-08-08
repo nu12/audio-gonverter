@@ -16,5 +16,6 @@ WORKDIR /app
 
 COPY --from=builder /app/gonverter /app/gonverter
 COPY --from=builder /app/cmd/templates /app/cmd/templates
+COPY --from=builder /app/cmd/static /app/cmd/static
 
 ENTRYPOINT ["./gonverter"]

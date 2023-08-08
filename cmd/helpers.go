@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -24,7 +23,7 @@ type CustomHTTPServer interface {
 }
 
 func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
-	log.Println("Stating Web service")
+	log.Info("Starting Web service")
 
 	err := s.ListenAndServe()
 	if err != nil {
@@ -33,7 +32,7 @@ func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
 }
 
 func (app *Config) startWorker(c chan<- error) {
-	log.Println("Stating Worker service")
+	log.Info("Starting Worker service")
 
 	c <- errors.New("Worker is not implemented")
 }

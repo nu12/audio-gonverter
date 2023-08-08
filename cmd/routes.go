@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"text/template"
 
@@ -18,14 +17,14 @@ func (app *Config) routes() http.Handler {
 	mux.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		t, err := template.New("index.page.gohtml").Delims("<<", ">>").ParseFiles(app.TemplatesPath + "index.page.gohtml")
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		err = t.Execute(w, TemplateData{Commit: app.Env["COMMIT"]})
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

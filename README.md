@@ -8,7 +8,9 @@ Suggested `pre-commit` hook:
 #!/usr/bin/env bash
 
 go fmt cmd/*
-go test -v ./...
+go test -coverprofile cover.out -v ./...
+go tool cover -func=cover.out
+go tool cover -html=cover.out -o cover.html
 ```
 
 Suggested `commit-msg` hook:
