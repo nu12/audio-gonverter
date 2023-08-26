@@ -5,46 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Audio Gonverter</title>
     <link rel="stylesheet" href="/static/css.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.8.3/angular.js"></script>
-    <script src="/static/javascript.js"></script>
 </head>
-<body ng-app="gonverter">
+<body>
     <header>
         <div class="logo">
             <img width="100%" src="/static/logo.png" alt="audio-gonverter">
         </div>
     </header>
-    <div class="container" ng-controller="GonverterController as c">
+    <div class="container">
         <main>
             <section>
-                <p>{{c.message}}</p>
+                <p>Message</p>
             </section>
             <hr />
             <section>
                 <h1>Upload audio files</h1>
-                <form action="">
-                    <input type="file" name="files" id="files">
-                    <input type="button" value="Upload" ng-click="c.upload()">
+                <form enctype="multipart/form-data" action="/upload" method="POST">
+                    <input multiple type="file" name="files" id="files">
+                    <input type="submit" value="Upload">
                 </form>
             </section>
             <hr />
             <section>
                 <h1>Convertion options</h1>
-                <form action="">
-                    <select name="" id="">
+                <form action="/convert" method="POST">
+                    <select name="format" id="format">
                         <option value="">Format</option>
                     </select>
 
-                    <select name="" id="">
+                    <select name="kbps" id="kbps">
                         <option value="">Kbps</option>
                     </select>
 
-                    <input type="button" value="Convert">
+                    <input type="submit" value="Convert">
                 </form>
             </section>
             <hr />
             <section>
-                <h1>Your files ({{c.files.length}}/10)</h1>
+                <h1>Your files (xx/10)</h1>
                 <table>
                     <thead>
                         <th>Original file</th>
@@ -53,12 +51,15 @@
                         <th>Actions</th>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="file in c.files">
-                            <td>{{file.original}}</td>
-                            <td>{{file.converted}}</td>
-                            <td>{{file.status}}</td>
-                            <td><a href="{{file.download}}">Download</a> | Delete</td>
+                    {{ range $file := .Files }}
+                        <tr>
+                            <td>{{ $file.OriginalName }}</td>
+                            <td>x</td>
+                            <td>x</td>
+                            <td><a href="#">Download</a> | Delete</td>
                         </tr>
+                    {{ end }}
+                        
                     </tbody>
                 </table>
             </section>
@@ -66,7 +67,7 @@
         <hr />
         <footer>
             <p><a href="https://github.com/nu12/audio-gonverter">audio-gonverter</a></p>
-            <p>Build: << .Commit >></p>
+            <p>Build: {{ .Commit }} </p>
         </footer>
     </div>
 </body>
