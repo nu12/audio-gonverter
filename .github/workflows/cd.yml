@@ -29,8 +29,8 @@ jobs:
         CURRENT=$(svu c | tr -d "v")
         NEXT=$(svu n | tr -d "v")
 
-        echo "current=v$CURRENT" >> $GITHUB_OUTPUT
-        echo "next=v$NEXT" >> $GITHUB_OUTPUT
+        echo "current=$CURRENT" >> $GITHUB_OUTPUT
+        echo "next=$NEXT" >> $GITHUB_OUTPUT
         echo "Current version: v$CURRENT" >> $GITHUB_STEP_SUMMARY
         echo "Next version: v$NEXT" >> $GITHUB_STEP_SUMMARY
 
