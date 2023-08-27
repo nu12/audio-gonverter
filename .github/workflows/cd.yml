@@ -68,7 +68,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         push: true
-        tags: ghcr.io/nu12/audio-gonverter:latest,ghcr.io/nu12/audio-gonverter:${{ needs.version.outputs.next }}
+        tags: ghcr.io/nu12/audio-gonverter:latest,ghcr.io/nu12/audio-gonverter:${{ needs.version.outputs.next | tr -d "v" }}
 
   analysis:
     runs-on: ubuntu-latest
