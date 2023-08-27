@@ -3,7 +3,10 @@ package main
 import (
 	"net/http"
 
+	"github.com/gorilla/sessions"
+	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/logging"
+	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
 const (
@@ -14,6 +17,8 @@ const (
 type Config struct {
 	TemplatesPath   string
 	StaticFilesPath string
+	SessionStore    *sessions.CookieStore
+	DatabaseRepo    repository.DatabaseRepository
 	Env             map[string]string
 }
 
@@ -25,6 +30,7 @@ func main() {
 	app := Config{
 		TemplatesPath:   "./cmd/templates/",
 		StaticFilesPath: "./cmd/static/",
+		DatabaseRepo:    &database.MockDB{},
 		Env:             map[string]string{},
 	}
 
