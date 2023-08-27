@@ -46,7 +46,11 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 
 	user := r.Context().Value(userID("user")).(*model.User)
 	user.IsUploading = true
-	app.saveUser(user)
+	if err := app.saveUser(user); err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	files := r.MultipartForm.File["files"]
 
