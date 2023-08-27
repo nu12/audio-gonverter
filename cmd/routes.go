@@ -24,6 +24,9 @@ func (app *Config) routes() http.Handler {
 	return mux
 }
 
+// SA1029: Users of WithValue should define their own types for keys.
+type userID string
+
 func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -46,7 +49,7 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 
 		user := app.loadUser(session.Values["user"].(string))
 		ctx := r.Context()
-		newCtx := context.WithValue(ctx, "user", user)
+		newCtx := context.WithValue(ctx, userID("user"), user)
 		sr := r.WithContext(newCtx)
 		next.ServeHTTP(w, sr)
 	})

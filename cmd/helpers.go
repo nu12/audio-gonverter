@@ -81,11 +81,13 @@ func (app *Config) addFilesAndSave(user *model.User, files []model.RawFile) {
 		//TODO: validate file type
 
 		if err := app.addFile(user, header); err != nil {
-			log.Warning("Warning")
+			log.Warning("Warning adding file")
 		}
 	}
 	user.IsUploading = false
-	app.saveUser( /* Repo, */ user)
+	if err := app.saveUser( /* Repo, */ user); err != nil {
+		log.Warning("Error saving user")
+	}
 }
 
 func (app *Config) saveUser(user *model.User) error {

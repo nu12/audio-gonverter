@@ -14,7 +14,7 @@ type TemplateData struct {
 
 func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Home page")
-	user := r.Context().Value("user").(*model.User)
+	user := r.Context().Value(userID("user")).(*model.User)
 
 	td := TemplateData{
 		Commit: app.Env["COMMIT"],
@@ -44,7 +44,7 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value("user").(*model.User)
+	user := r.Context().Value(userID("user")).(*model.User)
 	user.IsUploading = true
 	app.saveUser(user)
 
