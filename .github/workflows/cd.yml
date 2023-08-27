@@ -26,13 +26,13 @@ jobs:
       id: release
       run: |
         go install github.com/caarlos0/svu@latest
-        CURRENT=$(svu c)
-        NEXT=$(svu n)
+        CURRENT=$(svu c | tr -d "v")
+        NEXT=$(svu n | tr -d "v")
 
-        echo "current=$CURRENT" >> $GITHUB_OUTPUT
-        echo "next=$NEXT" >> $GITHUB_OUTPUT
-        echo "Current version: $CURRENT" >> $GITHUB_STEP_SUMMARY
-        echo "Next version: $NEXT" >> $GITHUB_STEP_SUMMARY
+        echo "current=v$CURRENT" >> $GITHUB_OUTPUT
+        echo "next=v$NEXT" >> $GITHUB_OUTPUT
+        echo "Current version: v$CURRENT" >> $GITHUB_STEP_SUMMARY
+        echo "Next version: v$NEXT" >> $GITHUB_STEP_SUMMARY
 
   release:
     runs-on: ubuntu-latest
@@ -49,10 +49,10 @@ jobs:
         TAG: ${{needs.version.outputs.next}}
         GH_TOKEN: ${{ github.TOKEN }}
       run: |
-        git tag $TAG
+        git tag v$TAG
         git push --tags
 
-        gh release create $TAG
+        gh release create v$TAG
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
@@ -68,7 +68,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         push: true
-        tags: ghcr.io/nu12/audio-gonverter:latest,ghcr.io/nu12/audio-gonverter:${{ needs.version.outputs.next | tr -d "v" }}
+        tags: ghcr.io/nu12/audio-gonverter:latest,ghcr.io/nu12/audio-gonverter:${{ needs.version.outputs.next }}
 
   analysis:
     runs-on: ubuntu-latest
