@@ -13,3 +13,4 @@ services:
       WEB_ENABLED: true
       WORKER_ENABLED: false
       VERBOSITY: 4
+      SESSION_KEY: compose
