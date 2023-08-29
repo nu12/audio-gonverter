@@ -51,7 +51,13 @@ func (app *Config) addFile(user *model.User, header model.RawFile) error {
 		return err
 	}
 	defer mf.Close()
-	of, err := os.OpenFile("/tmp/"+header.Filename(), os.O_WRONLY|os.O_CREATE, 0666)
+
+	file, err := model.NewFile(header.Filename())
+	if err != nil {
+		return err
+	}
+
+	of, err := os.OpenFile("/tmp/"+file.OriginalId, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
@@ -62,15 +68,12 @@ func (app *Config) addFile(user *model.User, header model.RawFile) error {
 		return err
 	}
 
-	file, err := model.NewFile(header.Filename(), bytes)
-	if err != nil {
-		return err
-	}
-
+	file.OriginalSize = bytes
 	if err := user.AddFile(file); err != nil {
 		return err
 	}
 
+	log.Debug("New file created: " + file.OriginalId)
 	return nil
 }
 

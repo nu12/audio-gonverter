@@ -3,4 +3,6 @@ docker-compose.yaml
 .git/
 .github/
 .gitignore
+cover.html
+cover.out
 README.md

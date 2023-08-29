@@ -1,5 +1,7 @@
 package model
 
+import "strings"
+
 type File struct {
 	OriginalName  string
 	ConvertedName string
@@ -10,7 +12,12 @@ type File struct {
 	IsConverted   bool
 }
 
-func NewFile(OriginalName string, OriginalSize int64) (*File, error) {
-	// Create random ID
-	return &File{}, nil
+func NewFile(OriginalName string) (*File, error) {
+	slices := strings.Split(OriginalName, ".")
+	format := slices[len(slices)-1]
+
+	return &File{
+		OriginalName: OriginalName,
+		OriginalId:   "uuid." + format,
+	}, nil
 }

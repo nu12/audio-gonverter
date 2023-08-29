@@ -14,6 +14,8 @@ ENV COMMIT=${commit}
 
 WORKDIR /app
 
+RUN apk add --no-cache ffmpeg
+
 COPY --from=builder /app/gonverter /app/gonverter
 COPY --from=builder /app/cmd/templates /app/cmd/templates
 COPY --from=builder /app/cmd/static /app/cmd/static
