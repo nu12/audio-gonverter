@@ -1,23 +1,41 @@
 package model
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/google/uuid"
+)
 
 type File struct {
-	OriginalName  string
-	ConvertedName string
-	OriginalSize  int64
-	ConvertedSize int64
-	OriginalId    string
-	ConvertedId   string
-	IsConverted   bool
+	OriginalName  string `json:"original_name"`
+	ConvertedName string `json:"converted_name"`
+	OriginalSize  int64  `json:"original_size"`
+	ConvertedSize int64  `json:"converted_size"`
+	OriginalId    string `json:"original_id"`
+	ConvertedId   string `json:"converted_id"`
+	IsConverted   bool   `json:"is_converted"`
 }
 
 func NewFile(OriginalName string) (*File, error) {
-	slices := strings.Split(OriginalName, ".")
-	format := slices[len(slices)-1]
 
 	return &File{
 		OriginalName: OriginalName,
-		OriginalId:   "uuid." + format,
+		OriginalId:   generateUUID() + "." + getExtention(OriginalName),
 	}, nil
+}
+
+func getPrefix(s string) string {
+	slices := strings.Split(s, ".")
+	prefix := slices[0]
+	return prefix
+}
+
+func getExtention(s string) string {
+	slices := strings.Split(s, ".")
+	format := slices[len(slices)-1]
+	return format
+}
+
+func generateUUID() string {
+	return uuid.New().String()
 }
