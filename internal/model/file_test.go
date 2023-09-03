@@ -1,6 +1,7 @@
 package model
 
 import (
+	"reflect"
 	"regexp"
 	"testing"
 )
@@ -14,8 +15,8 @@ var validUUID = regexp.MustCompile(`\S{8}-\S{4}-\S{4}-\S{4}-\S{12}`)
 func TestNewFile(t *testing.T) {
 
 	f, _ := NewFile(orignalName)
-	if f == nil {
-		t.Errorf("Unexpected nil file")
+	if reflect.TypeOf(*f) != reflect.TypeOf(File{}) {
+		t.Errorf("File type doesn't match")
 	}
 
 	if f.OriginalName != orignalName {
