@@ -2,15 +2,12 @@ package model
 
 import (
 	"reflect"
-	"regexp"
 	"testing"
 )
 
 var prefix = "new_file"
 var extention = "mp3"
 var orignalName = prefix + "." + extention
-
-var validUUID = regexp.MustCompile(`\S{8}-\S{4}-\S{4}-\S{4}-\S{12}`)
 
 func TestNewFile(t *testing.T) {
 
