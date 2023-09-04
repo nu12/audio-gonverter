@@ -10,27 +10,32 @@ type User struct {
 
 func NewUser() User {
 	return User{
-		UUID: "to-be-implemented",
-		Files: []File{
-			{OriginalName: "Test1"},
-			{OriginalName: "Test2"},
-		},
+		UUID:         generateUUID(),
+		Files:        []File{},
 		IsUploading:  false,
 		IsConverting: false,
 	}
-
-	//save user
 }
 
 func (u *User) AddFile(file *File) error {
+	files := u.Files
+	files = append(files, *file)
+	u.Files = files
 	return nil
 }
 
 func (u *User) RemoveFile(id string) error {
+	files := []File{}
+	for _, f := range u.Files {
+		if f.OriginalId != id {
+			files = append(files, f)
+		}
+	}
+	u.Files = files
 	return nil
 }
 
-func (u *User) ClearFiles(id string) error {
+func (u *User) ClearFiles() error {
 	u.Files = []File{}
 	return nil
 }

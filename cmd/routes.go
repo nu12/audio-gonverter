@@ -38,8 +38,9 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 		}
 
 		if session.IsNew {
-			log.Debug("Creating new User for session")
-			session.Values["user"] = model.NewUser().UUID
+			user := model.NewUser()
+			session.Values["user"] = user.UUID
+			log.Debug("Created new User for session: " + user.UUID)
 			if err := session.Save(r, w); err != nil {
 				log.Error(err)
 				next.ServeHTTP(w, r)
