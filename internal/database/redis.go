@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/nu12/audio-gonverter/internal/model"
 	"github.com/redis/go-redis/v9"
@@ -10,6 +11,7 @@ import (
 
 type RedisRepo struct {
 	Client *redis.Client
+	//TODO: Add expiration
 }
 
 func NewRedis(host, port, password string) *RedisRepo {
@@ -28,7 +30,8 @@ func (r *RedisRepo) Save(u *model.User) error {
 		return err
 	}
 
-	err = r.Client.Set(context.TODO(), u.UUID, string(userJson), 0).Err()
+	//TODO: Add expiration
+	err = r.Client.Set(context.TODO(), u.UUID, string(userJson), 1*time.Hour).Err()
 	if err != nil {
 		return err
 	}
