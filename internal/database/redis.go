@@ -34,6 +34,8 @@ func (r *RedisRepo) Save(u *model.User) error {
 	}
 	return nil
 }
+
+// TODO: refactor to return error
 func (r *RedisRepo) Load(uuid string) *model.User {
 
 	userJson, err := r.Client.Get(context.TODO(), uuid).Result()
@@ -44,5 +46,9 @@ func (r *RedisRepo) Load(uuid string) *model.User {
 
 	var user model.User
 	err = json.Unmarshal([]byte(userJson), &user)
+	if err != nil {
+		u := model.NewUser()
+		return &u
+	}
 	return &user
 }
