@@ -72,6 +72,9 @@ func (app *Config) addFile(user *model.User, header model.RawFile) error {
 	if err := user.AddFile(file); err != nil {
 		return err
 	}
+	if err := app.saveUser(user); err != nil {
+		return err
+	}
 
 	log.Debug("New file created: " + file.OriginalId)
 	return nil

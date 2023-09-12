@@ -46,6 +46,11 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
+			if err := app.saveUser(&user); err != nil {
+				log.Error(err)
+				next.ServeHTTP(w, r)
+				return
+			}
 		}
 
 		user := app.loadUser(session.Values["user"].(string))

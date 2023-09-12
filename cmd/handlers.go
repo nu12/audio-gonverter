@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/nu12/audio-gonverter/internal/model"
-	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 type TemplateData struct {
@@ -69,17 +68,18 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Convert")
+	// TODO: send to queue
 
 	// Proof of concept
-	err := ffmpeg.Input("/tmp/uuid.mp3").
-		Output("/tmp/uuid.ogg").
-		OverWriteOutput().ErrorToStdOut().Run()
+	// err := ffmpeg.Input("/tmp/uuid.mp3").
+	// 	Output("/tmp/uuid.ogg").
+	// 	OverWriteOutput().ErrorToStdOut().Run()
 
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	// if err != nil {
+	// 	log.Error(err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

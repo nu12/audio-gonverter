@@ -1,11 +1,10 @@
 package model
 
 type User struct {
-	UUID         string
-	Files        []File
-	IsUploading  bool
-	IsConverting bool
-	// Add a DB Repo here
+	UUID         string `json:"uuid"`
+	Files        []File `json:"files"`
+	IsUploading  bool   `json:"is_uploading"`
+	IsConverting bool   `json:"is_converting"`
 }
 
 func NewUser() User {
