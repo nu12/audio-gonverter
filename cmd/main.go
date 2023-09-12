@@ -30,19 +30,21 @@ func main() {
 	app := Config{
 		TemplatesPath:   "./cmd/templates/",
 		StaticFilesPath: "./cmd/static/",
-		DatabaseRepo:    &database.MockDB{},
 		Env:             map[string]string{},
 	}
 
 	err := app.loadEnv([]string{
 		"WEB_ENABLED",
 		"WORKER_ENABLED",
+		"REDIS_HOST",
+		"REDIS_PORT",
 		"COMMIT",
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
 	c := make(chan error, 1)
 
 	if app.Env["WEB_ENABLED"] == "true" {
