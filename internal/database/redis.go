@@ -11,10 +11,10 @@ import (
 
 type RedisRepo struct {
 	Client *redis.Client
-	//TODO: Add expiration
 }
 
 func NewRedis(host, port, password string) *RedisRepo {
+
 	return &RedisRepo{
 		Client: redis.NewClient(&redis.Options{
 			Addr:     host + ":" + port,
@@ -39,19 +39,19 @@ func (r *RedisRepo) Save(u *model.User) error {
 }
 
 // TODO: refactor to return error
-func (r *RedisRepo) Load(uuid string) *model.User {
+func (r *RedisRepo) Load(uuid string) (*model.User, error) {
 
 	userJson, err := r.Client.Get(context.TODO(), uuid).Result()
 	if err != nil {
 		u := model.NewUser()
-		return &u
+		return &u, err
 	}
 
 	var user model.User
 	err = json.Unmarshal([]byte(userJson), &user)
 	if err != nil {
 		u := model.NewUser()
-		return &u
+		return &u, err
 	}
-	return &user
+	return &user, nil
 }

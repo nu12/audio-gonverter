@@ -11,6 +11,7 @@ import (
 func (app *Config) routes() http.Handler {
 	mux := chi.NewRouter()
 
+	mux.Use(app.CreateSessionAndUser)
 	mux.Use(app.LoadSessionAndUser)
 
 	mux.Get("/", app.Home)
@@ -27,33 +28,61 @@ func (app *Config) routes() http.Handler {
 // SA1029: Users of WithValue should define their own types for keys.
 type userID string
 
+func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		session, err := app.SessionStore.Get(r, "audio-gonverter")
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			return
+		}
+
+		if !session.IsNew {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user := model.NewUser()
+		session.Values["user"] = user.UUID
+		log.Debug("Created new User for session: " + user.UUID)
+
+		session.Options.MaxAge = 3600 // 1 hour
+		if err := session.Save(r, w); err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			return
+		}
+		if err := app.saveUser(&user); err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		session, err := app.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
 			log.Error(err)
-			next.ServeHTTP(w, r)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
 			return
 		}
 
-		if session.IsNew {
-			user := model.NewUser()
-			session.Values["user"] = user.UUID
-			log.Debug("Created new User for session: " + user.UUID)
-			if err := session.Save(r, w); err != nil {
-				log.Error(err)
-				next.ServeHTTP(w, r)
-				return
-			}
-			if err := app.saveUser(&user); err != nil {
-				log.Error(err)
-				next.ServeHTTP(w, r)
-				return
-			}
+		user, err := app.loadUser(session.Values["user"].(string))
+		if err != nil {
+			log.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			return
 		}
-
-		user := app.loadUser(session.Values["user"].(string))
 		ctx := r.Context()
 		newCtx := context.WithValue(ctx, userID("user"), user)
 		sr := r.WithContext(newCtx)

@@ -8,7 +8,7 @@ func (*MockDB) Save(*model.User) error {
 	return nil
 }
 
-func (*MockDB) Load(id string) *model.User {
+func (*MockDB) Load(id string) (*model.User, error) {
 	return &model.User{
 		UUID:         id,
 		IsUploading:  false,
@@ -30,5 +30,5 @@ func (*MockDB) Load(id string) *model.User {
 				IsConverted:  false,
 			},
 		},
-	}
+	}, nil
 }

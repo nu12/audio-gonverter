@@ -100,6 +100,6 @@ func (app *Config) saveUser(user *model.User) error {
 	return app.DatabaseRepo.Save(user)
 }
 
-func (app *Config) loadUser(id string) *model.User {
+func (app *Config) loadUser(id string) (*model.User, error) {
 	return app.DatabaseRepo.Load(id)
 }
