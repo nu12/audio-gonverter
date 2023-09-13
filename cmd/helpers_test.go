@@ -121,6 +121,3 @@ func TestAddFilesAndSave(t *testing.T) {
 		t.Errorf("Error uploading files")
 	}
 }
-
-// TODO saveUser
-// TODO loadUser

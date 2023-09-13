@@ -94,7 +94,10 @@ func TestSaveToDisk(t *testing.T) {
 		t.Errorf("Error creating file %s", err)
 	}
 
-	f.SaveToDiskFunc(f, "/tmp")
+	err = f.SaveToDiskFunc(f, "/tmp")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 
 	if _, err := os.Stat("/tmp/" + f.OriginalId + "mp3"); err == nil {
 		t.Errorf("Expected file to exist")
