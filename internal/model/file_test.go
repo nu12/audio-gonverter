@@ -1,6 +1,8 @@
 package model
 
 import (
+	"mime/multipart"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -42,5 +44,60 @@ func TestGenerateUUID(t *testing.T) {
 	match := validUUID.Match([]byte(uuid))
 	if !match {
 		t.Errorf("Error creating UUID. Got %s", uuid)
+	}
+}
+
+func TestAddandGetRawFile(t *testing.T) {
+	h := &multipart.FileHeader{}
+	f := &File{}
+	f.addRawFile(h)
+	if f.raw != h {
+		t.Errorf("Error adding raw file")
+	}
+
+	if f.getRawFile() != h {
+		t.Errorf("Error getting raw file")
+	}
+}
+
+func TestEmptyRawFile(t *testing.T) {
+	f, err := NewFile("test.mp3")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if f.getRawFile() != nil {
+		t.Errorf("Raw file should be nil")
+	}
+}
+
+func TestFilesFromForm(t *testing.T) {
+	files, err := FilesFromForm([]*multipart.FileHeader{
+		{
+			Filename: "file.mp3",
+		},
+	})
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+	if len(files) != 1 {
+		t.Errorf("Expected files to have one element, got %d", len(files))
+	}
+
+}
+
+func TestSaveToDisk(t *testing.T) {
+
+	f, err := NewFile("test-file.mp3")
+	if err != nil {
+		t.Errorf("Error creating file %s", err)
+	}
+
+	err = f.SaveToDisk("/tmp")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	if _, err := os.Stat("/tmp/" + f.OriginalId); err != nil {
+		t.Errorf("Expected file to exist: %s", err)
 	}
 }

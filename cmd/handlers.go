@@ -52,15 +52,14 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := r.MultipartForm.File["files"]
-
-	// Using custom headers
-	customHeaders := make([]model.RawFile, 0)
-	for _, f := range files {
-		h := &model.Header{FileHeader: f}
-		customHeaders = append(customHeaders, h)
+	files, err := model.FilesFromForm(r.MultipartForm.File["files"])
+	if err != nil {
+		log.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	go app.addFilesAndSave(user, customHeaders)
+
+	go app.addFilesAndSave(user, files)
 
 	// TODO: write message to display and redirect to index
 	http.Redirect(w, r, "/", http.StatusSeeOther)

@@ -34,8 +34,7 @@ func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
 		session, err := app.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
 			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
 
@@ -51,14 +50,12 @@ func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
 		session.Options.MaxAge = 3600 // 1 hour
 		if err := session.Save(r, w); err != nil {
 			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
 		if err := app.saveUser(&user); err != nil {
 			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -71,16 +68,14 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 		session, err := app.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
 			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
 
 		user, err := app.loadUser(session.Values["user"].(string))
 		if err != nil {
 			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Session error. Cleaning the cache may solve the issue"))
+			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
 		ctx := r.Context()
@@ -88,4 +83,12 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 		sr := r.WithContext(newCtx)
 		next.ServeHTTP(w, sr)
 	})
+}
+
+func (app *Config) write(w http.ResponseWriter, message string, status int) {
+	w.WriteHeader(status)
+	_, err := w.Write([]byte(message))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

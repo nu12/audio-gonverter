@@ -94,3 +94,19 @@ func TestStaticFiles(t *testing.T) {
 		}
 	}
 }
+
+type TestResponseWriter struct{}
+
+func (w TestResponseWriter) Header() http.Header {
+	return http.Header{}
+}
+func (w TestResponseWriter) Write(m []byte) (int, error) {
+	return len(m), nil
+}
+func (w TestResponseWriter) WriteHeader(statusCode int) {}
+
+func TestWriter(t *testing.T) {
+	var w TestResponseWriter
+	testApp := &Config{}
+	testApp.write(w, "Test message", http.StatusOK)
+}

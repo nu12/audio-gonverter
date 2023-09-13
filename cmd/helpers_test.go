@@ -66,18 +66,7 @@ func TestStartWeb(t *testing.T) {
 
 }
 
-type mockFileHeader struct{}
-
-func (*mockFileHeader) Open() (multipart.File, error) {
-	return os.Open("helpers_test.go")
-}
-
-func (*mockFileHeader) Filename() string {
-	return "Test.mp3"
-}
-
 func TestAddFile(t *testing.T) {
-
 	app := Config{
 		DatabaseRepo: &database.MockDB{},
 		Env:          map[string]string{},
@@ -87,8 +76,12 @@ func TestAddFile(t *testing.T) {
 
 	user := model.NewUser()
 
-	header := &mockFileHeader{}
-	err := app.addFile(&user, header)
+	file, err := model.NewFile("test.mp3")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
+
+	err = app.addFile(&user, file)
 
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -107,16 +100,17 @@ func TestAddFilesAndSave(t *testing.T) {
 	user := model.NewUser()
 	user.IsUploading = true
 
-	header := []model.RawFile{
-		&mockFileHeader{},
+	files, err := model.FilesFromForm([]*multipart.FileHeader{
+		{Filename: "file.mp3"},
+	})
+
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
 	}
 
-	app.addFilesAndSave(&user, header)
+	app.addFilesAndSave(&user, files)
 
 	if user.IsUploading {
 		t.Errorf("Error uploading files")
 	}
 }
-
-// TODO saveUser
-// TODO loadUser
