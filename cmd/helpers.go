@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/gorilla/sessions"
@@ -45,30 +44,12 @@ func (app *Config) startWorker(c chan<- error) {
 	c <- errors.New("Worker is not implemented")
 }
 
-func (app *Config) addFile(user *model.User, header model.RawFile) error {
-	mf, err := header.Open()
-	if err != nil {
+// Untested
+func (app *Config) addFile(user *model.User, file *model.File) error {
+
+	if err := file.SaveToDiskFunc(file, "/tmp"); err != nil {
 		return err
 	}
-	defer mf.Close()
-
-	file, err := model.NewFile(header.Filename())
-	if err != nil {
-		return err
-	}
-
-	of, err := os.OpenFile("/tmp/"+file.OriginalId, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-	defer of.Close()
-
-	bytes, err := io.Copy(of, mf)
-	if err != nil {
-		return err
-	}
-
-	file.OriginalSize = bytes
 	if err := user.AddFile(file); err != nil {
 		return err
 	}
@@ -76,23 +57,23 @@ func (app *Config) addFile(user *model.User, header model.RawFile) error {
 		return err
 	}
 
-	log.Debug("New file created: " + file.OriginalId)
 	return nil
 }
 
-func (app *Config) addFilesAndSave(user *model.User, files []model.RawFile) {
-	for _, header := range files {
-		//TODO: validate max size
-		//TODO: validate max files per user
-		//TODO: validate file type
+func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
+	for _, file := range files {
+		//TODO: file.ValidateMaxSize()
+		//TODO: file.ValidateMaxSizePerUser(user)
+		//TODO: file.ValidateFileExtention()
+		// if !file.Valid {break}
 
-		if err := app.addFile(user, header); err != nil {
-			log.Warning("Warning adding file")
+		if err := app.addFile(user, file); err != nil {
+			log.Warning(err.Error())
 		}
 	}
 	user.IsUploading = false
 	if err := app.saveUser( /* Repo, */ user); err != nil {
-		log.Warning("Error saving user")
+		log.Warning(err.Error())
 	}
 }
 
