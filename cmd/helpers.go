@@ -47,7 +47,7 @@ func (app *Config) startWorker(c chan<- error) {
 // Untested
 func (app *Config) addFile(user *model.User, file *model.File) error {
 
-	if err := file.SaveToDiskFunc(file, "/tmp"); err != nil {
+	if err := file.SaveToDisk("/tmp"); err != nil {
 		return err
 	}
 	if err := user.AddFile(file); err != nil {

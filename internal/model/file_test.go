@@ -65,8 +65,8 @@ func TestEmptyRawFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	if f.getRawFile() == nil {
-		t.Errorf("Raw file is nil")
+	if f.getRawFile() != nil {
+		t.Errorf("Raw file should be nil")
 	}
 }
 
@@ -88,18 +88,16 @@ func TestFilesFromForm(t *testing.T) {
 func TestSaveToDisk(t *testing.T) {
 
 	f, err := NewFile("test-file.mp3")
-	f.addRawFile(&multipart.FileHeader{})
-
 	if err != nil {
 		t.Errorf("Error creating file %s", err)
 	}
 
-	err = f.SaveToDiskFunc(f, "/tmp")
+	err = f.SaveToDisk("/tmp")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	if _, err := os.Stat("/tmp/" + f.OriginalId + "mp3"); err == nil {
-		t.Errorf("Expected file to exist")
+	if _, err := os.Stat("/tmp/" + f.OriginalId); err != nil {
+		t.Errorf("Expected file to exist: %s", err)
 	}
 }

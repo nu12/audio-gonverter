@@ -66,10 +66,6 @@ func TestStartWeb(t *testing.T) {
 
 }
 
-var SaveToDiskMock = func(f *model.File, path string) error {
-	return nil
-}
-
 func TestAddFile(t *testing.T) {
 	app := Config{
 		DatabaseRepo: &database.MockDB{},
@@ -84,7 +80,7 @@ func TestAddFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
-	file.SaveToDiskFunc = SaveToDiskMock
+
 	err = app.addFile(&user, file)
 
 	if err != nil {
@@ -107,9 +103,6 @@ func TestAddFilesAndSave(t *testing.T) {
 	files, err := model.FilesFromForm([]*multipart.FileHeader{
 		{Filename: "file.mp3"},
 	})
-	for _, f := range files {
-		f.SaveToDiskFunc = SaveToDiskMock
-	}
 
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
