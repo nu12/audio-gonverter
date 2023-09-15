@@ -30,6 +30,10 @@ func NewFile(OriginalName string) (*File, error) {
 	return &File{
 		OriginalName: OriginalName,
 		OriginalId:   generateUUID() + "." + getExtention(OriginalName),
+		raw: Raw{
+			IsValid:           true,
+			InvalidityMessage: "",
+		},
 	}, nil
 }
 
@@ -103,25 +107,17 @@ func (f *File) ValidateMaxSize(maxSize int) {
 	if !f.raw.IsValid {
 		return
 	}
-	isValid := false
-	message := "File is too big"
 
-	if f.raw.File.Size <= int64(maxSize) {
-		isValid = true
-		message = ""
+	if f.raw.File.Size > int64(maxSize) {
+		f.raw.IsValid = false
+		f.raw.InvalidityMessage = "File is too big"
 	}
-
-	f.raw.IsValid = isValid
-	f.raw.InvalidityMessage = message
 }
 
 func (f *File) ValidateMaxSizePerUser(user *User, maxSizePerUser int) {
 	if !f.raw.IsValid {
 		return
 	}
-	isValid := false
-	message := "User's file size limit reached"
-
 	currentUserFileSize := 0
 	for _, file := range user.Files {
 		if file.getRawFile() != nil {
@@ -131,34 +127,25 @@ func (f *File) ValidateMaxSizePerUser(user *User, maxSizePerUser int) {
 		}
 	}
 
-	if (currentUserFileSize + int(f.raw.File.Size)) <= maxSizePerUser {
-		isValid = true
-		message = ""
+	if (currentUserFileSize + int(f.raw.File.Size)) > maxSizePerUser {
+		f.raw.IsValid = false
+		f.raw.InvalidityMessage = "User's file size limit reached"
 	}
-
-	f.raw.IsValid = isValid
-	f.raw.InvalidityMessage = message
 }
 
 func (f *File) ValidateMaxFilesPerUser(user *User, maxFilesPerUser int) {
 	if !f.raw.IsValid {
 		return
 	}
-	isValid := false
-	message := "User's max files limit reached"
 
-	if (len(user.Files)) < maxFilesPerUser {
-		isValid = true
-		message = ""
+	if (len(user.Files)) >= maxFilesPerUser {
+		f.raw.IsValid = false
+		f.raw.InvalidityMessage = "User's max files limit reached"
 	}
-
-	f.raw.IsValid = isValid
-	f.raw.InvalidityMessage = message
 }
 
 func (f *File) addRawFile(raw *multipart.FileHeader) {
 	f.raw.File = raw
-	f.raw.IsValid = true
 }
 func (f *File) getRawFile() *multipart.FileHeader {
 	return f.raw.File
