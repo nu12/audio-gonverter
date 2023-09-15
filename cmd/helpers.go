@@ -44,7 +44,6 @@ func (app *Config) startWorker(c chan<- error) {
 	c <- errors.New("Worker is not implemented")
 }
 
-// Untested
 func (app *Config) addFile(user *model.User, file *model.File) error {
 
 	if err := file.SaveToDisk("/tmp"); err != nil {
@@ -62,10 +61,15 @@ func (app *Config) addFile(user *model.User, file *model.File) error {
 
 func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
 	for _, file := range files {
-		//TODO: file.ValidateMaxSize()
-		//TODO: file.ValidateMaxSizePerUser(user)
-		//TODO: file.ValidateFileExtention()
-		// if !file.Valid {break}
+		file.ValidateMaxFilesPerUser(user, 10)       //TODO: configuration
+		file.ValidateMaxSize(10000000)               //TODO: configuration
+		file.ValidateMaxSizePerUser(user, 100000000) //TODO: configuration
+		file.ValidateFileExtention([]string{"mp3"})  //TODO: configuration
+		if message, valid := file.GetValidity(); !valid {
+			log.Debug(message)
+			//TODO: add message to user
+			break
+		}
 
 		if err := app.addFile(user, file); err != nil {
 			log.Warning(err.Error())
