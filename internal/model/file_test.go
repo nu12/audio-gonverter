@@ -130,6 +130,9 @@ func TestValidateFileExtention(t *testing.T) {
 	}
 
 	validExtention, err := NewFile("valid.mp3")
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 	validExtention.addRawFile(&multipart.FileHeader{})
 	validExtention.ValidateFileExtention(validExtentions)
 	if _, valid := validExtention.GetValidity(); !valid {
@@ -185,7 +188,10 @@ func TestValidateMaxSizePerUser(t *testing.T) {
 		t.Errorf("Expected first file to be valid")
 	}
 
-	user.AddFile(file1)
+	err = user.AddFile(file1)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 
 	file2, err := NewFile("File2.mp3")
 	if err != nil {
@@ -217,7 +223,10 @@ func TestValidateMaxFilesPerUser(t *testing.T) {
 		t.Errorf("Expected first file to be valid")
 	}
 
-	user.AddFile(file1)
+	err = user.AddFile(file1)
+	if err != nil {
+		t.Errorf("Unexpected error: %s", err)
+	}
 
 	file2, err := NewFile("File2.mp3")
 	if err != nil {
