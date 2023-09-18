@@ -67,18 +67,23 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Convert")
-	// TODO: send to queue
+	user := r.Context().Value(userID("user")).(*model.User)
+	err := r.ParseForm()
 
-	// Proof of concept
-	// err := ffmpeg.Input("/tmp/uuid.mp3").
-	// 	Output("/tmp/uuid.ogg").
-	// 	OverWriteOutput().ErrorToStdOut().Run()
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	// if err != nil {
-	// 	log.Error(err)
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
+	format := r.PostForm.Get("format")
+	kbps := r.PostForm.Get("kbps")
+	msg := user.UUID + format + kbps
+	err = app.QueueRepo.Push(msg)
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Debug("Sent message: " + msg)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
