@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/logging"
+	"github.com/nu12/audio-gonverter/internal/queue"
 	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
@@ -19,6 +20,7 @@ type Config struct {
 	StaticFilesPath string
 	SessionStore    *sessions.CookieStore
 	DatabaseRepo    repository.DatabaseRepository
+	QueueRepo       repository.QueueRepository
 	Env             map[string]string
 }
 
@@ -45,6 +47,7 @@ func main() {
 	}
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
+	app.QueueRepo = &queue.QueueMock{}
 	c := make(chan error, 1)
 
 	if app.Env["WEB_ENABLED"] == "true" {
