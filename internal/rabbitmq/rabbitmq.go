@@ -3,22 +3,22 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
-
-	"github.com/nu12/audio-gonverter/internal/model"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Message struct {
-	User   *model.User `json:"user"`
-	Format string      `json:"format"`
-	Kbps   string      `json:"kbps"`
+	UserUUID string `json:"user"`
+	Format   string `json:"format"`
+	Kbps     string `json:"kbps"`
 }
 type RabbitQueue struct {
-	Channel  *amqp.Channel
-	Queue    amqp.Queue
-	Consumer <-chan amqp.Delivery
+	Connection *amqp.Connection
+	Channel    *amqp.Channel
+	Queue      amqp.Queue
+	Consumer   <-chan amqp.Delivery
 }
 
 func (q *RabbitQueue) Push(msg string) error {
@@ -37,8 +37,11 @@ func (q *RabbitQueue) Push(msg string) error {
 
 }
 
-func (q *RabbitQueue) Consume() <-chan amqp.Delivery {
-	return q.Consumer
+func (q *RabbitQueue) Pull() (string, error) {
+	for msg := range q.Consumer {
+		return string(msg.Body), nil
+	}
+	return "", errors.New("No message found")
 }
 
 func Connect(connString string) (*RabbitQueue, error) {
@@ -46,13 +49,11 @@ func Connect(connString string) (*RabbitQueue, error) {
 	if err != nil {
 		return nil, err
 	}
-	//defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
 		return &RabbitQueue{}, err
 	}
-	//defer ch.Close()
 
 	q, err := ch.QueueDeclare(
 		"audio", // name
@@ -80,9 +81,10 @@ func Connect(connString string) (*RabbitQueue, error) {
 	}
 
 	return &RabbitQueue{
-		Channel:  ch,
-		Queue:    q,
-		Consumer: c,
+		Connection: conn,
+		Channel:    ch,
+		Queue:      q,
+		Consumer:   c,
 	}, nil
 
 }

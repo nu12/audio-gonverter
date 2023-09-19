@@ -9,6 +9,7 @@ import (
 
 	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 )
 
 // Test loadEnv
@@ -55,6 +56,26 @@ func TestStartWeb(t *testing.T) {
 	t.Run("Start Web Service", func(t *testing.T) {
 		testServer := &TestServer{}
 		go app.startWeb(c, testServer)
+
+		select {
+		case err := <-c:
+			t.Errorf("Unexpected error: %s", err)
+		case <-time.After(1 * time.Second):
+			// No error occurred, the test passes
+		}
+	})
+
+}
+
+func TestStartWorker(t *testing.T) {
+	c := make(chan error)
+	app := Config{
+		QueueRepo: &rabbitmq.QueueMock{},
+	}
+
+	t.Run("Start Worker", func(t *testing.T) {
+
+		go app.startWorker(c)
 
 		select {
 		case err := <-c:

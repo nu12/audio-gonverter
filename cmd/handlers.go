@@ -77,9 +77,9 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 	}
 	user := r.Context().Value(userID("user")).(*model.User)
 	message := rabbitmq.Message{
-		User:   user,
-		Format: r.PostForm.Get("format"),
-		Kbps:   r.PostForm.Get("kbps"),
+		UserUUID: user.UUID,
+		Format:   r.PostForm.Get("format"),
+		Kbps:     r.PostForm.Get("kbps"),
 	}
 
 	encoded, err := rabbitmq.Encode(message)

@@ -11,7 +11,7 @@ services:
       - "8080:8080"
     environment:
       WEB_ENABLED: true
-      WORKER_ENABLED: false
+      WORKER_ENABLED: true
       REDIS_HOST: "redis"
       REDIS_PORT: "6379"
       VERBOSITY: 4

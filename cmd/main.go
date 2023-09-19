@@ -29,7 +29,7 @@ type Config struct {
 var log = logging.NewLogger()
 
 func main() {
-	log.Debug("audio-gonverter starts here")
+	log.Info("Starting audio-gonverter")
 
 	app := Config{
 		TemplatesPath:   "./cmd/templates/",
@@ -67,6 +67,8 @@ func main() {
 		log.Fatal(err)
 	}
 	app.QueueRepo = q
+	defer q.Connection.Close()
+	defer q.Channel.Close()
 
 	c := make(chan error, 1)
 

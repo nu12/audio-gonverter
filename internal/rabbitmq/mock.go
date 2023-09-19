@@ -1,11 +1,14 @@
 package rabbitmq
 
-type QueueMock struct{}
+type QueueMock struct {
+	Count int
+}
 
-func (*QueueMock) Push(msg string) error {
+func (q *QueueMock) Push(msg string) error {
+	q.Count++
 	return nil
 }
 
-func (*QueueMock) Consume() <-chan any {
-	return nil
+func (*QueueMock) Pull() (string, error) {
+	return "Queue mock", nil
 }
