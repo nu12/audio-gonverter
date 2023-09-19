@@ -1,12 +1,14 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/logging"
-	"github.com/nu12/audio-gonverter/internal/queue"
+	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
@@ -27,7 +29,7 @@ type Config struct {
 var log = logging.NewLogger()
 
 func main() {
-	log.Debug("audio-gonverter starts here")
+	log.Info("Starting audio-gonverter")
 
 	app := Config{
 		TemplatesPath:   "./cmd/templates/",
@@ -40,6 +42,7 @@ func main() {
 		"WORKER_ENABLED",
 		"REDIS_HOST",
 		"REDIS_PORT",
+		"QUEUE_CONNECTION_STRING",
 		"COMMIT",
 	})
 	if err != nil {
@@ -47,7 +50,26 @@ func main() {
 	}
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
-	app.QueueRepo = &queue.QueueMock{}
+
+	q := &rabbitmq.RabbitQueue{}
+	err = errors.New("No queue available")
+	for i := 1; i <= 10; i++ {
+		q, err = rabbitmq.Connect(app.Env["QUEUE_CONNECTION_STRING"])
+		if err != nil {
+			time.Sleep(time.Duration(i) * time.Second)
+			log.Debug("Queue not ready, waiting...")
+			continue
+		}
+		break
+	}
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	app.QueueRepo = q
+	defer q.Connection.Close()
+	defer q.Channel.Close()
+
 	c := make(chan error, 1)
 
 	if app.Env["WEB_ENABLED"] == "true" {

@@ -5,10 +5,13 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
+	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 )
 
 func TestRoutes(t *testing.T) {
@@ -64,6 +67,35 @@ func TestUpload(t *testing.T) {
 
 	if rr.Code != http.StatusSeeOther {
 		t.Errorf("Expected status code %d, but got %d", http.StatusSeeOther, rr.Code)
+	}
+
+}
+
+func TestConvert(t *testing.T) {
+	queue := &rabbitmq.QueueMock{}
+	testApp := &Config{
+		TemplatesPath:   "./templates/",
+		StaticFilesPath: "./static/",
+		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
+		DatabaseRepo:    &database.MockDB{},
+		QueueRepo:       queue,
+	}
+	h := testApp.routes()
+
+	form := url.Values{}
+	form.Add("format", "ogg")
+	form.Add("kbps", "64")
+	req := httptest.NewRequest("POST", "/convert", strings.NewReader(form.Encode()))
+
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("Expected status code %d, but got %d", http.StatusSeeOther, rr.Code)
+	}
+
+	if queue.Count != 1 {
+		t.Errorf("Expected 1 message in the queue, got %d", queue.Count)
 	}
 
 }

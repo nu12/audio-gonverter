@@ -11,18 +11,27 @@ services:
       - "8080:8080"
     environment:
       WEB_ENABLED: true
-      WORKER_ENABLED: false
+      WORKER_ENABLED: true
       REDIS_HOST: "redis"
       REDIS_PORT: "6379"
       VERBOSITY: 4
       SESSION_KEY: compose
+      QUEUE_CONNECTION_STRING: "amqp://guest:guest@rabbitmq:5672/"
 
   redis:
     image: redis:6.2-alpine
     ports:
       - '6379:6379'
-
     volumes: 
       - redis:/data
+
+  rabbitmq:
+    image: rabbitmq:3.9.14-alpine
+    ports:
+      - "5672:5672"
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
 volumes:
   redis:
+  rabbitmq:

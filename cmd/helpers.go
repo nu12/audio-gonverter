@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -41,7 +40,13 @@ func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
 func (app *Config) startWorker(c chan<- error) {
 	log.Info("Starting Worker service")
 
-	c <- errors.New("Worker is not implemented")
+	for {
+		msg, err := app.QueueRepo.Pull()
+		if err != nil {
+			c <- err
+		}
+		log.Info("worker received message: " + msg)
+	}
 }
 
 func (app *Config) addFile(user *model.User, file *model.File) error {
