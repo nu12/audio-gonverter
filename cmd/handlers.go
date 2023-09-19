@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 )
 
 type TemplateData struct {
@@ -67,23 +68,38 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Convert")
-	user := r.Context().Value(userID("user")).(*model.User)
+
 	err := r.ParseForm()
 
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	user := r.Context().Value(userID("user")).(*model.User)
+	message := rabbitmq.Message{
+		User:   user,
+		Format: r.PostForm.Get("format"),
+		Kbps:   r.PostForm.Get("kbps"),
+	}
 
-	format := r.PostForm.Get("format")
-	kbps := r.PostForm.Get("kbps")
-	msg := user.UUID + format + kbps
-	err = app.QueueRepo.Push(msg)
+	encoded, err := rabbitmq.Encode(message)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Debug("Sent message: " + msg)
+
+	err = app.QueueRepo.Push(encoded)
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Debug("Sent message: " + encoded)
+
+	user.IsConverting = true
+	if err := app.saveUser(user); err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
