@@ -31,7 +31,7 @@ jobs:
     - name: Bump version
       id: release
       run: |
-        if [ "${github.ref_type}" == "tag" ]
+        if [ "${{ github.ref_type }}" == "tag" ]
         then
           CURRENT="------------------"
           NEXT="${{ github.ref_name }}"
