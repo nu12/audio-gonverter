@@ -29,7 +29,7 @@ type File struct {
 func NewFile(OriginalName string) (*File, error) {
 	return &File{
 		OriginalName: OriginalName,
-		OriginalId:   generateUUID() + "." + getExtention(OriginalName),
+		OriginalId:   GenerateUUID() + "." + getExtention(OriginalName),
 		raw: Raw{
 			IsValid:           true,
 			InvalidityMessage: "",
@@ -166,6 +166,10 @@ func getExtention(s string) string {
 	return format
 }
 
-func generateUUID() string {
+func GenerateUUID() string {
 	return uuid.New().String()
+}
+
+func (f *File) Prefix() string {
+	return getPrefix(f.OriginalName)
 }

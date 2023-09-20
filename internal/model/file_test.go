@@ -43,7 +43,7 @@ func TestGetExtention(t *testing.T) {
 }
 
 func TestGenerateUUID(t *testing.T) {
-	uuid := generateUUID()
+	uuid := GenerateUUID()
 	match := validUUID.Match([]byte(uuid))
 	if !match {
 		t.Errorf("Error creating UUID. Got %s", uuid)

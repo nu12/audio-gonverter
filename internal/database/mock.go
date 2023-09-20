@@ -13,7 +13,7 @@ func (*MockDB) Load(id string) (*model.User, error) {
 		UUID:         id,
 		IsUploading:  false,
 		IsConverting: false,
-		Files: []model.File{
+		Files: []*model.File{
 			{
 				OriginalName:  "MockFile1.mp3",
 				ConvertedName: "MockFile1.ogg",
