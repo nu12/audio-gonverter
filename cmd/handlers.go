@@ -9,7 +9,7 @@ import (
 )
 
 type TemplateData struct {
-	Files  []model.File
+	Files  []*model.File
 	Commit string
 }
 

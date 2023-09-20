@@ -97,6 +97,11 @@ func Encode(msg Message) (string, error) {
 	return string(j), nil
 }
 
-func Decore(msg string) (Message, error) {
-	return Message{}, nil
+func Decode(msg string) (Message, error) {
+	var message Message
+	err := json.Unmarshal([]byte(msg), &message)
+	if err != nil {
+		return Message{}, err
+	}
+	return message, nil
 }

@@ -57,9 +57,9 @@
                     {{ range $file := .Files }}
                         <tr>
                             <td>{{ $file.OriginalName }}</td>
+                            <td>{{ $file.ConvertedName }}</td>
                             <td>x</td>
-                            <td>x</td>
-                            <td><a href="#">Download</a> | Delete</td>
+                            <td><a href="#">Download</a> | <a href="#">Delete</a></td>
                         </tr>
                     {{ end }}
                         

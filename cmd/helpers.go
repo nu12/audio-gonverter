@@ -6,6 +6,9 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/rabbitmq"
+
+	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 func (app *Config) loadEnv(required []string) error {
@@ -45,12 +48,54 @@ func (app *Config) startWorker(c chan<- error) {
 		if err != nil {
 			c <- err
 		}
-		log.Info("worker received message: " + msg)
+		decoded, err := rabbitmq.Decode(msg)
+		if err != nil {
+			log.Warning("Cannot decode de message: " + msg)
+			continue
+		}
+		user, err := app.loadUser(decoded.UserUUID)
+		if err != nil {
+			log.Warning("Cannot retrieve user: " + decoded.UserUUID)
+			continue
+		}
+		if err := app.convert(user, decoded.Format, decoded.Kbps); err != nil {
+			log.Warning("Error converting file")
+			continue
+		}
+		user.IsConverting = false
+		if err := app.saveUser(user); err != nil {
+			log.Warning("Error saving user")
+			continue
+		}
 	}
+}
+
+func (app *Config) convert(user *model.User, format, kpbs string) error {
+	for _, file := range user.Files {
+
+		convertedId := model.GenerateUUID() + "." + format
+
+		// TODO: configure
+		err := ffmpeg.Input("/tmp/"+file.OriginalId).
+			Output("/tmp/"+convertedId, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
+			OverWriteOutput().
+			ErrorToStdOut().
+			Run()
+
+		if err != nil {
+			return err
+		}
+
+		file.ConvertedName = file.Prefix() + "." + format
+		file.ConvertedId = convertedId
+		file.IsConverted = true
+	}
+	return nil
 }
 
 func (app *Config) addFile(user *model.User, file *model.File) error {
 
+	// TODO: configure
 	if err := file.SaveToDisk("/tmp"); err != nil {
 		return err
 	}
