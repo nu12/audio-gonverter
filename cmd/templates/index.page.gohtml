@@ -45,7 +45,7 @@
             </section>
             <hr />
             <section>
-                <h1>Your files (xx/10)</h1>
+                <h1>Your files ({{ len .Files }}/10)</h1>
                 <table>
                     <thead>
                         <th>Original file</th>
@@ -58,8 +58,8 @@
                         <tr>
                             <td>{{ $file.OriginalName }}</td>
                             <td>{{ $file.ConvertedName }}</td>
-                            <td>x</td>
-                            <td><a href="#">Download</a> | <a href="#">Delete</a></td>
+                            <td>{{ if .IsConverted }}Converted{{ else }}Pending{{ end }}</td>
+                            <td>{{ if .IsConverted }}<a href="/download/{{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete/{{ $file.ConvertedId }}">Delete</a></td>
                         </tr>
                     {{ end }}
                         

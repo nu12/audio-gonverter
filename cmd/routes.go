@@ -22,6 +22,10 @@ func (app *Config) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir(app.StaticFilesPath))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
+	// TODO: configure
+	convertedServer := http.FileServer(http.Dir("/tmp/"))
+	mux.Handle("/download/*", http.StripPrefix("/download", convertedServer))
+
 	return mux
 }
 
