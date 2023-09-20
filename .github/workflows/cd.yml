@@ -37,7 +37,7 @@ jobs:
           NEXT="${{ github.ref_name }}"
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "next=$NEXT" >> $GITHUB_OUTPUT
-          echo "Manually pushed tag will build image v$CURRENT" >> $GITHUB_STEP_SUMMARY
+          echo "Manually pushed tag will build image v$NEXT" >> $GITHUB_STEP_SUMMARY
           exit 0
         fi
 
@@ -61,6 +61,7 @@ jobs:
         go-version: 1.20.6
 
     - name: Create GH release
+      if: github.ref_type != 'tag'
       env:
         TAG: ${{needs.version.outputs.next}}
         GH_TOKEN: ${{ github.TOKEN }}
@@ -89,7 +90,7 @@ jobs:
   analysis:
     runs-on: ubuntu-latest
     needs: [release]
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    if: always()
     steps:
     - uses: actions/checkout@v3
     - name: Pull latest image
