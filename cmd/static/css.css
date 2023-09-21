@@ -32,3 +32,8 @@ p.message-alert{
 p.message-success{
     color: green;
 }
+
+button a{
+    text-decoration: none;
+    color: inherit;
+}
