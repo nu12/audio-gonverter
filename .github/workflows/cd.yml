@@ -34,10 +34,10 @@ jobs:
         if [ "${{ github.ref_type }}" == "tag" ]
         then
           CURRENT="------------------"
-          NEXT="${{ github.ref_name }}"
+          NEXT=$(echo "${{ github.ref_name }}" | tr -d "v")
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
           echo "next=$NEXT" >> $GITHUB_OUTPUT
-          echo "Manually pushed tag will build image v$NEXT" >> $GITHUB_STEP_SUMMARY
+          echo "Manually pushed tag will build image $NEXT" >> $GITHUB_STEP_SUMMARY
           exit 0
         fi
 
