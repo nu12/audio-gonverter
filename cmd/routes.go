@@ -18,6 +18,8 @@ func (app *Config) routes() http.Handler {
 	mux.Get("/status", app.Status)
 	mux.Post("/upload", app.Upload)
 	mux.Post("/convert", app.Convert)
+	mux.Get("/delete", app.Delete)
+	mux.Get("/delete-all", app.DeleteAll)
 
 	fileServer := http.FileServer(http.Dir(app.StaticFilesPath))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))

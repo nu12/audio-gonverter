@@ -9,6 +9,9 @@ services:
         - commit=docker-dompose
     ports:
       - "8080:8080"
+    volumes: 
+      - original:/original
+      - converted:/converted
     environment:
       WEB_ENABLED: true
       WORKER_ENABLED: true
@@ -33,5 +36,7 @@ services:
       - rabbitmq:/var/lib/rabbitmq
 
 volumes:
+  original:
+  converted:
   redis:
   rabbitmq:

@@ -25,6 +25,7 @@
                     <input type="submit" value="Upload">
                 </form>
             </section>
+            {{ if gt .FilesCount 0 }}
             <hr />
             <section>
                 <h1>Convertion options</h1>
@@ -45,7 +46,7 @@
             </section>
             <hr />
             <section>
-                <h1>Your files ({{ len .Files }}/10)</h1>
+                <h1>Your files ({{ .FilesCount }}/10)</h1>
                 <table>
                     <thead>
                         <th>Original file</th>
@@ -59,13 +60,15 @@
                             <td>{{ $file.OriginalName }}</td>
                             <td>{{ $file.ConvertedName }}</td>
                             <td>{{ if .IsConverted }}Converted{{ else }}Pending{{ end }}</td>
-                            <td>{{ if .IsConverted }}<a href="/download/{{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete/{{ $file.ConvertedId }}">Delete</a></td>
+                            <td>{{ if .IsConverted }}<a href="/download/{{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete?uuid={{ $file.OriginalId }}">Delete</a></td>
                         </tr>
                     {{ end }}
                         
                     </tbody>
                 </table>
+                <button><a href="/delete-all">Delete all</a></button>
             </section>
+            {{ end }}
         </main>
         <hr />
         <footer>

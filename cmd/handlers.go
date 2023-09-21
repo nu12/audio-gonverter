@@ -9,8 +9,9 @@ import (
 )
 
 type TemplateData struct {
-	Files  []*model.File
-	Commit string
+	Files      []*model.File
+	FilesCount int
+	Commit     string
 }
 
 func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
@@ -18,8 +19,9 @@ func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 	user := r.Context().Value(userID("user")).(*model.User)
 
 	td := TemplateData{
-		Commit: app.Env["COMMIT"],
-		Files:  user.Files,
+		Commit:     app.Env["COMMIT"],
+		Files:      user.Files,
+		FilesCount: len(user.Files),
 	}
 
 	t, err := template.New("index.page.gohtml").ParseFiles(app.TemplatesPath + "index.page.gohtml")
@@ -106,5 +108,34 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Status(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Status page")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
+	log.Debug("Delete page")
+	user := r.Context().Value(userID("user")).(*model.User)
+	uuid := r.URL.Query().Get("uuid")
+	if err := user.RemoveFile(uuid); err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := app.saveUser(user); err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *Config) DeleteAll(w http.ResponseWriter, r *http.Request) {
+	log.Debug("DeleteAll page")
+	user := r.Context().Value(userID("user")).(*model.User)
+	if err := user.ClearFiles(); err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := app.saveUser(user); err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
