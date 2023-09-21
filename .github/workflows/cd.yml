@@ -41,6 +41,7 @@ jobs:
           exit 0
         fi
 
+
         go install github.com/caarlos0/svu@latest
         CURRENT=$(svu c | tr -d "v")
         NEXT=$(svu n | tr -d "v")
