@@ -2,7 +2,9 @@ package main
 
 import (
 	"html/template"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/nu12/audio-gonverter/internal/model"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
@@ -138,4 +140,43 @@ func (app *Config) DeleteAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
+	log.Debug("Download page")
+
+	uuid := r.URL.Query().Get("uuid")
+	dir, err := os.Open("/tmp/" + uuid)
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	files, err := dir.Readdirnames(-1)
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	f, err := os.Open("/tmp/" + uuid + "/" + files[0])
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var b = make([]byte, 1024)
+	w.Header().Add("Content-Type", "application/octet-stream")
+	w.Header().Add("Content-Disposition", "attachment;filename="+files[0])
+
+	for {
+		_, err = f.Read(b)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			app.write(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(b)
+	}
 }

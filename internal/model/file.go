@@ -29,7 +29,7 @@ type File struct {
 func NewFile(OriginalName string) (*File, error) {
 	return &File{
 		OriginalName: OriginalName,
-		OriginalId:   GenerateUUID() + "." + getExtention(OriginalName),
+		OriginalId:   GenerateUUID(),
 		raw: Raw{
 			IsValid:           true,
 			InvalidityMessage: "",
@@ -53,7 +53,10 @@ func FilesFromForm(rawFiles []*multipart.FileHeader) ([]*File, error) {
 }
 
 func (f *File) SaveToDisk(path string) error {
-	of, err := os.OpenFile(path+"/"+f.OriginalId, os.O_WRONLY|os.O_CREATE, 0666)
+	if err := os.Mkdir(path+"/"+f.OriginalId, 0777); err != nil {
+		return err
+	}
+	of, err := os.OpenFile(path+"/"+f.OriginalId+"/"+f.OriginalName, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}

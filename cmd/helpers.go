@@ -73,20 +73,29 @@ func (app *Config) startWorker(c chan<- error) {
 func (app *Config) convert(user *model.User, format, kpbs string) error {
 	for _, file := range user.Files {
 
-		convertedId := model.GenerateUUID() + "." + format
+		convertedId := model.GenerateUUID()
+		convertedName := file.Prefix() + "." + format
 
 		// TODO: configure
-		err := ffmpeg.Input("/tmp/"+file.OriginalId).
-			Output("/tmp/"+convertedId, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
-			OverWriteOutput().
-			ErrorToStdOut().
-			Run()
-
-		if err != nil {
+		if err := os.Mkdir("/tmp/"+convertedId, 0777); err != nil {
+			log.Error(err)
 			return err
 		}
 
-		file.ConvertedName = file.Prefix() + "." + format
+		// TODO: configure
+		err := ffmpeg.Input("/tmp/"+file.OriginalId+"/"+file.OriginalName).
+			Output("/tmp/"+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
+			// OverWriteOutput().
+			// ErrorToStdOut().
+			Run()
+
+		if err != nil {
+			log.Warning("Could not convert file: " + err.Error())
+			user.RemoveFile(file.OriginalId)
+			continue
+		}
+
+		file.ConvertedName = convertedName
 		file.ConvertedId = convertedId
 		file.IsConverted = true
 	}

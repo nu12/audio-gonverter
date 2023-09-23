@@ -33,6 +33,7 @@
                     <select name="format" id="format">
                         <option value="ogg">Format</option>
                         <option value="ogg">ogg</option>
+                        <option value="aac">aac</option>
                     </select>
 
                     <select name="kbps" id="kbps">
@@ -60,7 +61,7 @@
                             <td>{{ $file.OriginalName }}</td>
                             <td>{{ $file.ConvertedName }}</td>
                             <td>{{ if .IsConverted }}Converted{{ else }}Pending{{ end }}</td>
-                            <td>{{ if .IsConverted }}<a href="/download/{{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete?uuid={{ $file.OriginalId }}">Delete</a></td>
+                            <td>{{ if .IsConverted }}<a href="/download?uuid={{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete?uuid={{ $file.OriginalId }}">Delete</a></td>
                         </tr>
                     {{ end }}
                         
