@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/gorilla/sessions"
@@ -150,4 +151,38 @@ func (app *Config) saveUser(user *model.User) error {
 
 func (app *Config) loadUser(id string) (*model.User, error) {
 	return app.DatabaseRepo.Load(id)
+}
+
+func (app *Config) AddFlash(w http.ResponseWriter, r *http.Request, msg string) {
+	s, err := app.SessionStore.Get(r, "audio-gonverter")
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	s.AddFlash(msg)
+	s.Save(r, w)
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (app *Config) GetFlash(w http.ResponseWriter, r *http.Request) string {
+	s, err := app.SessionStore.Get(r, "audio-gonverter")
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return ""
+	}
+	f := s.Flashes()
+	if len(f) == 0 {
+		return "Welcome to audio-gonverter"
+	}
+
+	msg := f[0].(string)
+	s.Save(r, w)
+	if err != nil {
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return ""
+	}
+	return msg
 }

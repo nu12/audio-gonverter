@@ -14,6 +14,7 @@ type TemplateData struct {
 	Files      []*model.File
 	FilesCount int
 	Commit     string
+	Message    string
 }
 
 func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +25,7 @@ func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 		Commit:     app.Env["COMMIT"],
 		Files:      user.Files,
 		FilesCount: len(user.Files),
+		Message:    app.GetFlash(w, r),
 	}
 
 	t, err := template.New("index.page.gohtml").ParseFiles(app.TemplatesPath + "index.page.gohtml")
@@ -125,6 +127,7 @@ func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	app.AddFlash(w, r, "Deleted file")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -139,6 +142,7 @@ func (app *Config) DeleteAll(w http.ResponseWriter, r *http.Request) {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	app.AddFlash(w, r, "Deleted all files")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
