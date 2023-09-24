@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/model"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
@@ -133,5 +134,23 @@ func TestAddFilesAndSave(t *testing.T) {
 
 	if user.IsUploading {
 		t.Errorf("Error uploading files")
+	}
+}
+
+func TestFlash(t *testing.T) {
+	testApp := &Config{
+		SessionStore: sessions.NewCookieStore([]byte("test")),
+	}
+
+	w := TestResponseWriter{}
+	r := &http.Request{}
+
+	expected := "Test message"
+
+	testApp.AddFlash(w, r, expected)
+	got := testApp.GetFlash(w, r)
+
+	if expected != got {
+		t.Errorf("Expected %s, got %s", expected, got)
 	}
 }
