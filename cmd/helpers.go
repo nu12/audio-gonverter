@@ -160,7 +160,7 @@ func (app *Config) AddFlash(w http.ResponseWriter, r *http.Request, msg string) 
 		return
 	}
 	s.AddFlash(msg)
-	s.Save(r, w)
+	err = s.Save(r, w)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -179,7 +179,7 @@ func (app *Config) GetFlash(w http.ResponseWriter, r *http.Request) string {
 	}
 
 	msg := f[0].(string)
-	s.Save(r, w)
+	err = s.Save(r, w)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return ""
