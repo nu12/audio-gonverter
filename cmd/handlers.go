@@ -177,6 +177,9 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 			app.write(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.Write(b)
+		_, err = w.Write(b)
+		if err != nil {
+			app.write(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }

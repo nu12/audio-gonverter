@@ -91,7 +91,11 @@ func (app *Config) convert(user *model.User, format, kpbs string) error {
 
 		if err != nil {
 			log.Warning("Could not convert file: " + err.Error())
-			user.RemoveFile(file.OriginalId)
+			// TODO: needs refactoring
+			err2 := user.RemoveFile(file.OriginalId)
+			if err2 != nil {
+				log.Warning("Error removing file: " + err2.Error())
+			}
 			continue
 		}
 
