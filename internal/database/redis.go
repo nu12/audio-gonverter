@@ -55,3 +55,14 @@ func (r *RedisRepo) Load(uuid string) (*model.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *RedisRepo) Exist(uuid string) (bool, error) {
+	_, err := r.Client.Get(context.TODO(), uuid).Result()
+	if err == redis.Nil {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
