@@ -22,7 +22,7 @@ func TestNewFile(t *testing.T) {
 		t.Errorf("File name doesn't match. Expected %s, got %s", orignalName, f.OriginalName)
 	}
 
-	if !validUUID.Match([]byte(getPrefix(f.OriginalId))) {
+	if !validUUID.Match([]byte(f.OriginalId)) {
 		t.Errorf("File UUID is not valid. Got %s", getPrefix(f.OriginalId))
 	}
 }
@@ -100,7 +100,7 @@ func TestSaveToDisk(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	if _, err := os.Stat("/tmp/" + f.OriginalId); err != nil {
+	if _, err := os.Stat("/tmp/" + f.OriginalId + "/" + f.OriginalName); err != nil {
 		t.Errorf("Expected file to exist: %s", err)
 	}
 }
