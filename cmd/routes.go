@@ -74,6 +74,21 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
+		e, err := app.DatabaseRepo.Exist(session.Values["user"].(string))
+		if !e && err == nil {
+			u := &model.User{UUID: session.Values["user"].(string), Files: []*model.File{}}
+			err2 := app.saveUser(u)
+			if err2 != nil {
+				log.Error(err)
+				app.write(w, err2.Error(), http.StatusInternalServerError)
+				return
+			}
+
+		} else if err != nil {
+			log.Error(err)
+			app.write(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		user, err := app.loadUser(session.Values["user"].(string))
 		if err != nil {

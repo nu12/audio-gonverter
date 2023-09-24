@@ -32,3 +32,6 @@ func (*MockDB) Load(id string) (*model.User, error) {
 		},
 	}, nil
 }
+func (*MockDB) Exist(id string) (bool, error) {
+	return true, nil
+}
