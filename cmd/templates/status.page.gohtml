@@ -1,0 +1,20 @@
+{{template "base" .}}
+
+{{define "content" }}
+<main>
+    <section>
+        <p>{{ .Message }}</p>
+    </section>
+</main>
+
+{{end}}
+
+{{define "js" }}
+
+<script>
+setTimeout(function(){
+    location.reload()
+}, 2000);
+</script>
+
+{{end}}

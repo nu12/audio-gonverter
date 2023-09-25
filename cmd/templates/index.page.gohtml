@@ -1,82 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Gonverter</title>
-    <link rel="stylesheet" href="/static/css.css">
-</head>
-<body>
-    <header>
-        <div class="logo">
-            <img width="100%" src="/static/logo.png" alt="audio-gonverter">
-        </div>
-    </header>
-    <div class="container">
-        <main>
-            <section>
-                <p>{{ .Message }}</p>
-            </section>
-            <hr />
-            <section>
-                <h1>Upload audio files</h1>
-                <form enctype="multipart/form-data" action="/upload" method="POST">
-                    <input multiple type="file" name="files" id="files">
-                    <input type="submit" value="Upload">
-                </form>
-            </section>
-            {{ if gt .FilesCount 0 }}
-            <hr />
-            <section>
-                <h1>Convertion options</h1>
-                <form action="/convert" method="POST">
-                    <select name="format" id="format">
-                        <option value="ogg">Format</option>
-                        <option value="ogg">ogg</option>
-                        <option value="aac">aac</option>
-                    </select>
+{{template "base" .}}
 
-                    <select name="kbps" id="kbps">
-                        <option value="64">Kbps</option>
-                        <option value="64">64</option>
-                        <option value="128">128</option>
-                    </select>
+{{define "content" }}
+<main>
+    <section>
+        <p>{{ .Message }}</p>
+    </section>
+    <hr />
+    <section>
+        <h1>Upload audio files</h1>
+        <form enctype="multipart/form-data" action="/upload" method="POST">
+            <input multiple type="file" name="files" id="files">
+            <input type="submit" value="Upload">
+        </form>
+    </section>
+    {{ if gt .FilesCount 0 }}
+    <hr />
+    <section>
+        <h1>Convertion options</h1>
+        <form action="/convert" method="POST">
+            <select name="format" id="format">
+                <option value="ogg">Format</option>
+                <option value="ogg">ogg</option>
+                <option value="aac">aac</option>
+            </select>
 
-                    <input type="submit" value="Convert">
-                </form>
-            </section>
-            <hr />
-            <section>
-                <h1>Your files ({{ .FilesCount }}/10)</h1>
-                <table>
-                    <thead>
-                        <th>Original file</th>
-                        <th>Converted file</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </thead>
-                    <tbody>
-                    {{ range $file := .Files }}
-                        <tr>
-                            <td>{{ $file.OriginalName }}</td>
-                            <td>{{ $file.ConvertedName }}</td>
-                            <td>{{ if .IsConverted }}Converted{{ else }}Pending{{ end }}</td>
-                            <td>{{ if .IsConverted }}<a href="/download?uuid={{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete?uuid={{ $file.OriginalId }}">Delete</a></td>
-                        </tr>
-                    {{ end }}
-                        
-                    </tbody>
-                </table>
-                <button><a href="/delete-all">Delete all</a></button>
-            </section>
+            <select name="kbps" id="kbps">
+                <option value="64">Kbps</option>
+                <option value="64">64</option>
+                <option value="128">128</option>
+            </select>
+
+            <input type="submit" value="Convert">
+        </form>
+    </section>
+    <hr />
+    <section>
+        <h1>Your files ({{ .FilesCount }}/10)</h1>
+        <table>
+            <thead>
+                <th>Original file</th>
+                <th>Converted file</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </thead>
+            <tbody>
+            {{ range $file := .Files }}
+                <tr>
+                    <td>{{ $file.OriginalName }}</td>
+                    <td>{{ $file.ConvertedName }}</td>
+                    <td>{{ if .IsConverted }}Converted{{ else }}Pending{{ end }}</td>
+                    <td>{{ if .IsConverted }}<a href="/download?uuid={{ $file.ConvertedId }}">Download</a>{{ else }}Download{{ end }} | <a href="/delete?uuid={{ $file.OriginalId }}">Delete</a></td>
+                </tr>
             {{ end }}
-        </main>
-        <hr />
-        <footer>
-            <p><a href="https://github.com/nu12/audio-gonverter">audio-gonverter</a></p>
-            <p>Build: {{ .Commit }} </p>
-        </footer>
-    </div>
-</body>
-
-</html>
+                
+            </tbody>
+        </table>
+        <button><a href="/delete-all">Delete all</a></button>
+    </section>
+    {{ end }}
+</main>
+{{end}}
