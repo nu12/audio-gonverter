@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"text/template"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/nu12/audio-gonverter/internal/model"
@@ -13,9 +14,9 @@ func (app *Config) routes() http.Handler {
 
 	mux.Use(app.CreateSessionAndUser)
 	mux.Use(app.LoadSessionAndUser)
+	mux.Use(app.StatusCheck)
 
 	mux.Get("/", app.Home)
-	mux.Get("/status", app.Status)
 	mux.Post("/upload", app.Upload)
 	mux.Post("/convert", app.Convert)
 	mux.Get("/delete", app.Delete)
@@ -103,10 +104,43 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 	})
 }
 
+func (app *Config) StatusCheck(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		user := r.Context().Value(userID("user")).(*model.User)
+
+		if user.IsConverting {
+			app.render(w, "status.page.gohtml", TemplateData{Message: "Converting", Commit: app.Env["COMMIT"]})
+			return
+		}
+		if user.IsUploading {
+			app.render(w, "status.page.gohtml", TemplateData{Message: "Uploading", Commit: app.Env["COMMIT"]})
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (app *Config) write(w http.ResponseWriter, message string, status int) {
 	w.WriteHeader(status)
 	_, err := w.Write([]byte(message))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (app *Config) render(w http.ResponseWriter, templateName string, td TemplateData) {
+	t, err := template.New(templateName).ParseFiles(app.TemplatesPath+"base.layout.gohtml", app.TemplatesPath+templateName)
+	if err != nil {
+		log.Error(err)
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := t.Execute(w, td); err != nil {
+		log.Error(err)
+		app.write(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }

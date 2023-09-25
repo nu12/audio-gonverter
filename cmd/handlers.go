@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"io"
 	"net/http"
 	"os"
@@ -28,18 +27,7 @@ func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 		Message:    app.GetFlash(w, r),
 	}
 
-	t, err := template.New("index.page.gohtml").ParseFiles(app.TemplatesPath + "index.page.gohtml")
-	if err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if err := t.Execute(w, td); err != nil {
-		log.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	app.render(w, "index.page.gohtml", td)
 }
 
 func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +56,6 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 
 	go app.addFilesAndSave(user, files)
 
-	// TODO: write message to display and redirect to index
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -107,11 +94,6 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func (app *Config) Status(w http.ResponseWriter, r *http.Request) {
-	log.Debug("Status page")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
