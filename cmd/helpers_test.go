@@ -54,6 +54,17 @@ func TestStartWeb(t *testing.T) {
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
 
+	os.Setenv("MAX_FILES_PER_USER", "10")
+	os.Setenv("MAX_FILE_SIZE", "100000")
+	os.Setenv("MAX_TOTAL_SIZE_PER_USER", "1000000")
+	os.Setenv("ORIGINAL_FILE_EXTENTION", "mp3")
+	os.Setenv("TARGET_FILE_EXTENTION", "ogg,aac")
+	defer os.Unsetenv("MAX_FILES_PER_USER")
+	defer os.Unsetenv("MAX_FILE_SIZE")
+	defer os.Unsetenv("MAX_TOTAL_SIZE_PER_USER")
+	defer os.Unsetenv("ORIGINAL_FILE_EXTENTION")
+	defer os.Unsetenv("TARGET_FILE_EXTENTION")
+
 	t.Run("Start Web Service", func(t *testing.T) {
 		testServer := &TestServer{}
 		go app.startWeb(c, testServer)
