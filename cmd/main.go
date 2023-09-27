@@ -13,11 +13,6 @@ import (
 	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
-const (
-	ORIGINAL_PATH  = "/tmp/original/"
-	CONVERTED_PATH = "/tmp/converted/"
-)
-
 type Config struct {
 	TemplatesPath       string
 	StaticFilesPath     string
@@ -31,6 +26,8 @@ type Config struct {
 	MaxTotalSizePerUser int
 	OriginFileExtention []string
 	TargetFileExtention []string
+	OriginalPath        string
+	ConvertedPath       string
 }
 
 var log = logging.NewLogger()
@@ -58,8 +55,8 @@ func main() {
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
 	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{
-		InputPath:  ORIGINAL_PATH,
-		OutputPath: CONVERTED_PATH,
+		InputPath:  app.OriginalPath,
+		OutputPath: app.ConvertedPath,
 	}
 
 	q := &rabbitmq.RabbitQueue{}

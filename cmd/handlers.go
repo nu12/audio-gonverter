@@ -136,7 +136,7 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Download page")
 
 	uuid := r.URL.Query().Get("uuid")
-	dir, err := os.Open(CONVERTED_PATH + uuid)
+	dir, err := os.Open(app.ConvertedPath + uuid)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -148,7 +148,7 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.Open(CONVERTED_PATH + uuid + "/" + files[0])
+	f, err := os.Open(app.ConvertedPath + uuid + "/" + files[0])
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -25,6 +25,8 @@ services:
       MAX_TOTAL_SIZE_PER_USER: "100000000"
       ORIGINAL_FILE_EXTENTION: "wav,mp3"
       TARGET_FILE_EXTENTION: "ogg,aac"
+      ORIGINAL_FILES_PATH: /tmp/original
+      CONVERTED_FILES_PATH: /tmp/converted
 
   redis:
     image: redis:6.2-alpine

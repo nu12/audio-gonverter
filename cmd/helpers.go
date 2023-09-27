@@ -35,6 +35,8 @@ func (app *Config) loadConfigs() error {
 		"MAX_TOTAL_SIZE_PER_USER",
 		"ORIGINAL_FILE_EXTENTION",
 		"TARGET_FILE_EXTENTION",
+		"ORIGINAL_FILES_PATH",
+		"CONVERTED_FILES_PATH",
 	})
 	if err != nil {
 		return err
@@ -53,6 +55,9 @@ func (app *Config) loadConfigs() error {
 	if err != nil {
 		return err
 	}
+
+	app.OriginalPath = tempApp.Env["ORIGINAL_FILES_PATH"]
+	app.ConvertedPath = tempApp.Env["CONVERTED_FILES_PATH"]
 
 	app.OriginFileExtention = strings.Split(tempApp.Env["ORIGINAL_FILE_EXTENTION"], ",")
 	app.TargetFileExtention = strings.Split(tempApp.Env["TARGET_FILE_EXTENTION"], ",")
@@ -122,7 +127,7 @@ func (app *Config) convert(user *model.User, format, kpbs string) error {
 
 func (app *Config) addFile(user *model.User, file *model.File) error {
 
-	if err := file.SaveToDisk(ORIGINAL_PATH); err != nil {
+	if err := file.SaveToDisk(app.OriginalPath); err != nil {
 		return err
 	}
 	if err := user.AddFile(file); err != nil {

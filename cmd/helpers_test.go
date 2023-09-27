@@ -60,11 +60,15 @@ func TestStartWeb(t *testing.T) {
 	os.Setenv("MAX_TOTAL_SIZE_PER_USER", "1000000")
 	os.Setenv("ORIGINAL_FILE_EXTENTION", "mp3")
 	os.Setenv("TARGET_FILE_EXTENTION", "ogg,aac")
+	os.Setenv("ORIGINAL_FILES_PATH", "/tmp")
+	os.Setenv("CONVERTED_FILES_PATH", "/tmp")
 	defer os.Unsetenv("MAX_FILES_PER_USER")
 	defer os.Unsetenv("MAX_FILE_SIZE")
 	defer os.Unsetenv("MAX_TOTAL_SIZE_PER_USER")
 	defer os.Unsetenv("ORIGINAL_FILE_EXTENTION")
 	defer os.Unsetenv("TARGET_FILE_EXTENTION")
+	defer os.Unsetenv("ORIGINAL_FILES_PATH")
+	defer os.Unsetenv("CONVERTED_FILES_PATH")
 
 	t.Run("Start Web Service", func(t *testing.T) {
 		testServer := &TestServer{}
@@ -106,6 +110,7 @@ func TestAddFile(t *testing.T) {
 	app := Config{
 		DatabaseRepo: &database.MockDB{},
 		Env:          map[string]string{},
+		OriginalPath: "/tmp",
 	}
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
@@ -176,11 +181,15 @@ func TestLoadConfig(t *testing.T) {
 	os.Setenv("MAX_TOTAL_SIZE_PER_USER", "1000000")
 	os.Setenv("ORIGINAL_FILE_EXTENTION", "mp3")
 	os.Setenv("TARGET_FILE_EXTENTION", "ogg,aac")
+	os.Setenv("ORIGINAL_FILES_PATH", "/tmp")
+	os.Setenv("CONVERTED_FILES_PATH", "/tmp")
 	defer os.Unsetenv("MAX_FILES_PER_USER")
 	defer os.Unsetenv("MAX_FILE_SIZE")
 	defer os.Unsetenv("MAX_TOTAL_SIZE_PER_USER")
 	defer os.Unsetenv("ORIGINAL_FILE_EXTENTION")
 	defer os.Unsetenv("TARGET_FILE_EXTENTION")
+	defer os.Unsetenv("ORIGINAL_FILES_PATH")
+	defer os.Unsetenv("CONVERTED_FILES_PATH")
 
 	err := testApp.loadConfigs()
 	if err != nil {
