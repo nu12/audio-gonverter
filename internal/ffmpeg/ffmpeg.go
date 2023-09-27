@@ -8,6 +8,7 @@ import (
 )
 
 type Ffmpeg struct {
+	InputPath  string
 	OutputPath string
 }
 
@@ -21,7 +22,7 @@ func (f *Ffmpeg) Convert(file *model.File, format, kpbs string) error {
 		return err
 	}
 
-	err := ffmpeg.Input(f.OutputPath+file.OriginalId+"/"+file.OriginalName).
+	err := ffmpeg.Input(f.InputPath+file.OriginalId+"/"+file.OriginalName).
 		Output(f.OutputPath+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
 		// OverWriteOutput().
 		// ErrorToStdOut().

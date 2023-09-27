@@ -112,6 +112,7 @@ func (app *Config) convert(user *model.User, format, kpbs string) error {
 
 		err := app.ConvertionToolRepo.Convert(file, format, kpbs)
 		if err != nil {
+			log.Warning(err.Error())
 			// TODO: remove file
 			// TODO message suer
 		}

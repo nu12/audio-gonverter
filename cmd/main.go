@@ -57,7 +57,10 @@ func main() {
 	}
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
-	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{OutputPath: CONVERTED_PATH}
+	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{
+		InputPath:  ORIGINAL_PATH,
+		OutputPath: CONVERTED_PATH,
+	}
 
 	q := &rabbitmq.RabbitQueue{}
 	err = errors.New("No queue available")
