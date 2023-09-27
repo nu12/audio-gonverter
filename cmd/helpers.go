@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/model"
-	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
@@ -88,9 +87,9 @@ func (app *Config) startWorker(c chan<- error) {
 		if err != nil {
 			c <- err
 		}
-		decoded, err := rabbitmq.Decode(msg)
+		decoded, err := app.QueueRepo.Decode(msg)
 		if err != nil {
-			log.Warning("Cannot decode de message: " + msg)
+			log.Warning("Cannot decode the message: " + msg)
 			continue
 		}
 		user, err := app.loadUser(decoded.UserUUID)

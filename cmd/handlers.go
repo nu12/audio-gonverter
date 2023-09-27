@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/nu12/audio-gonverter/internal/model"
-	"github.com/nu12/audio-gonverter/internal/rabbitmq"
+	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
 type TemplateData struct {
@@ -73,13 +73,13 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := r.Context().Value(userID("user")).(*model.User)
-	message := rabbitmq.Message{
+	message := repository.QueueMessage{
 		UserUUID: user.UUID,
 		Format:   r.PostForm.Get("format"),
 		Kbps:     r.PostForm.Get("kbps"),
 	}
 
-	encoded, err := rabbitmq.Encode(message)
+	encoded, err := app.QueueRepo.Encode(message)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return

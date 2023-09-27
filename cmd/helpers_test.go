@@ -82,7 +82,8 @@ func TestStartWeb(t *testing.T) {
 func TestStartWorker(t *testing.T) {
 	c := make(chan error)
 	app := Config{
-		QueueRepo: &rabbitmq.QueueMock{},
+		QueueRepo:    &rabbitmq.QueueMock{},
+		DatabaseRepo: &database.MockDB{},
 	}
 
 	t.Run("Start Worker", func(t *testing.T) {

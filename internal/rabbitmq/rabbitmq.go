@@ -6,14 +6,10 @@ import (
 	"errors"
 	"time"
 
+	"github.com/nu12/audio-gonverter/internal/repository"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type Message struct {
-	UserUUID string `json:"user"`
-	Format   string `json:"format"`
-	Kbps     string `json:"kbps"`
-}
 type RabbitQueue struct {
 	Connection *amqp.Connection
 	Channel    *amqp.Channel
@@ -89,7 +85,7 @@ func Connect(connString string) (*RabbitQueue, error) {
 
 }
 
-func Encode(msg Message) (string, error) {
+func (q *RabbitQueue) Encode(msg repository.QueueMessage) (string, error) {
 	j, err := json.Marshal(msg)
 	if err != nil {
 		return "", err
@@ -97,11 +93,11 @@ func Encode(msg Message) (string, error) {
 	return string(j), nil
 }
 
-func Decode(msg string) (Message, error) {
-	var message Message
+func (q *RabbitQueue) Decode(msg string) (repository.QueueMessage, error) {
+	var message repository.QueueMessage
 	err := json.Unmarshal([]byte(msg), &message)
 	if err != nil {
-		return Message{}, err
+		return repository.QueueMessage{}, err
 	}
 	return message, nil
 }
