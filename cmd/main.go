@@ -18,12 +18,17 @@ const (
 )
 
 type Config struct {
-	TemplatesPath   string
-	StaticFilesPath string
-	SessionStore    *sessions.CookieStore
-	DatabaseRepo    repository.DatabaseRepository
-	QueueRepo       repository.QueueRepository
-	Env             map[string]string
+	TemplatesPath       string
+	StaticFilesPath     string
+	SessionStore        *sessions.CookieStore
+	DatabaseRepo        repository.DatabaseRepository
+	QueueRepo           repository.QueueRepository
+	Env                 map[string]string
+	MaxFilesPerUser     int
+	MaxFileSize         int
+	MaxTotalSizePerUser int
+	OriginFileExtention []string
+	TargetFileExtention []string
 }
 
 var log = logging.NewLogger()
