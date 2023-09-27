@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
+	"github.com/nu12/audio-gonverter/internal/ffmpeg"
 	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 	"github.com/nu12/audio-gonverter/internal/repository"
@@ -23,6 +24,7 @@ type Config struct {
 	SessionStore        *sessions.CookieStore
 	DatabaseRepo        repository.DatabaseRepository
 	QueueRepo           repository.QueueRepository
+	ConvertionToolRepo  repository.ConvertionToolRepo
 	Env                 map[string]string
 	MaxFilesPerUser     int
 	MaxFileSize         int
@@ -55,6 +57,7 @@ func main() {
 	}
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
+	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{OutputPath: CONVERTED_PATH}
 
 	q := &rabbitmq.RabbitQueue{}
 	err = errors.New("No queue available")

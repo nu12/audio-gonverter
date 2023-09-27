@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
+	"github.com/nu12/audio-gonverter/internal/ffmpeg"
 	"github.com/nu12/audio-gonverter/internal/model"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 )
@@ -82,8 +83,9 @@ func TestStartWeb(t *testing.T) {
 func TestStartWorker(t *testing.T) {
 	c := make(chan error)
 	app := Config{
-		QueueRepo:    &rabbitmq.QueueMock{},
-		DatabaseRepo: &database.MockDB{},
+		QueueRepo:          &rabbitmq.QueueMock{},
+		DatabaseRepo:       &database.MockDB{},
+		ConvertionToolRepo: &ffmpeg.FfmpegMock{},
 	}
 
 	t.Run("Start Worker", func(t *testing.T) {

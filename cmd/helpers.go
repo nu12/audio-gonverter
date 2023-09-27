@@ -9,8 +9,6 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/model"
-
-	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 func (app *Config) loadEnv(required []string) error {
@@ -112,33 +110,11 @@ func (app *Config) startWorker(c chan<- error) {
 func (app *Config) convert(user *model.User, format, kpbs string) error {
 	for _, file := range user.Files {
 
-		convertedId := model.GenerateUUID()
-		convertedName := file.Prefix() + "." + format
-
-		if err := os.Mkdir(CONVERTED_PATH+convertedId, 0777); err != nil {
-			log.Error(err)
-			return err
-		}
-
-		err := ffmpeg.Input(ORIGINAL_PATH+file.OriginalId+"/"+file.OriginalName).
-			Output(CONVERTED_PATH+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
-			// OverWriteOutput().
-			// ErrorToStdOut().
-			Run()
-
+		err := app.ConvertionToolRepo.Convert(file, format, kpbs)
 		if err != nil {
-			log.Warning("Could not convert file: " + err.Error())
-			// TODO: needs refactoring
-			err2 := user.RemoveFile(file.OriginalId)
-			if err2 != nil {
-				log.Warning("Error removing file: " + err2.Error())
-			}
-			continue
+			// TODO: remove file
+			// TODO message suer
 		}
-
-		file.ConvertedName = convertedName
-		file.ConvertedId = convertedId
-		file.IsConverted = true
 	}
 	return nil
 }
