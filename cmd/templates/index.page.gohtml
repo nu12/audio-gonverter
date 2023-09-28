@@ -9,7 +9,7 @@
     <section>
         <h1>Upload audio files</h1>
         <form enctype="multipart/form-data" action="/upload" method="POST">
-            <input multiple type="file" name="files" id="files">
+            <input multiple type="file" accept="{{.Accepted}}" name="files" id="files">
             <input type="submit" value="Upload">
         </form>
     </section>
@@ -19,15 +19,20 @@
         <h1>Convertion options</h1>
         <form action="/convert" method="POST">
             <select name="format" id="format">
-                <option value="ogg">Format</option>
-                <option value="ogg">ogg</option>
-                <option value="aac">aac</option>
+                <option value="">Format</option>
+                {{ range $format := .Formats }}
+                    <tr>
+                        <option value="{{$format}}">{{$format}}</option>
+                    </tr>
+                {{ end }}
             </select>
 
             <select name="kbps" id="kbps">
-                <option value="64">Kbps</option>
+                <option value="">Kbps</option>
+                <option value="32">32</option>
                 <option value="64">64</option>
                 <option value="128">128</option>
+                <option value="192">192</option>
             </select>
 
             <input type="submit" value="Convert">

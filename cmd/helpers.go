@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/model"
-	"github.com/nu12/audio-gonverter/internal/rabbitmq"
-
-	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
 func (app *Config) loadEnv(required []string) error {
@@ -28,6 +27,44 @@ type CustomHTTPServer interface {
 	ListenAndServe() error
 }
 
+func (app *Config) loadConfigs() error {
+	tempApp := &Config{Env: map[string]string{}}
+	err := tempApp.loadEnv([]string{
+		"MAX_FILES_PER_USER",
+		"MAX_FILE_SIZE",
+		"MAX_TOTAL_SIZE_PER_USER",
+		"ORIGINAL_FILE_EXTENTION",
+		"TARGET_FILE_EXTENTION",
+		"ORIGINAL_FILES_PATH",
+		"CONVERTED_FILES_PATH",
+	})
+	if err != nil {
+		return err
+	}
+
+	app.MaxFilesPerUser, err = strconv.Atoi(tempApp.Env["MAX_FILES_PER_USER"])
+	if err != nil {
+		return err
+	}
+
+	app.MaxFileSize, err = strconv.Atoi(tempApp.Env["MAX_FILE_SIZE"])
+	if err != nil {
+		return err
+	}
+	app.MaxTotalSizePerUser, err = strconv.Atoi(tempApp.Env["MAX_TOTAL_SIZE_PER_USER"])
+	if err != nil {
+		return err
+	}
+
+	app.OriginalPath = tempApp.Env["ORIGINAL_FILES_PATH"]
+	app.ConvertedPath = tempApp.Env["CONVERTED_FILES_PATH"]
+
+	app.OriginFileExtention = strings.Split(tempApp.Env["ORIGINAL_FILE_EXTENTION"], ",")
+	app.TargetFileExtention = strings.Split(tempApp.Env["TARGET_FILE_EXTENTION"], ",")
+
+	return nil
+}
+
 func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
 	log.Info("Starting Web service")
 
@@ -35,6 +72,10 @@ func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
 		c <- err
 	}
 	app.SessionStore = sessions.NewCookieStore([]byte(app.Env["SESSION_KEY"]))
+
+	if err := app.loadConfigs(); err != nil {
+		c <- err
+	}
 
 	if err := s.ListenAndServe(); err != nil {
 		c <- err
@@ -49,9 +90,9 @@ func (app *Config) startWorker(c chan<- error) {
 		if err != nil {
 			c <- err
 		}
-		decoded, err := rabbitmq.Decode(msg)
+		decoded, err := app.QueueRepo.Decode(msg)
 		if err != nil {
-			log.Warning("Cannot decode de message: " + msg)
+			log.Warning("Cannot decode the message: " + msg)
 			continue
 		}
 		user, err := app.loadUser(decoded.UserUUID)
@@ -60,8 +101,8 @@ func (app *Config) startWorker(c chan<- error) {
 			continue
 		}
 		if err := app.convert(user, decoded.Format, decoded.Kbps); err != nil {
+			// TODO: message to the user
 			log.Warning("Error converting file")
-			continue
 		}
 		user.IsConverting = false
 		if err := app.saveUser(user); err != nil {
@@ -74,43 +115,19 @@ func (app *Config) startWorker(c chan<- error) {
 func (app *Config) convert(user *model.User, format, kpbs string) error {
 	for _, file := range user.Files {
 
-		convertedId := model.GenerateUUID()
-		convertedName := file.Prefix() + "." + format
-
-		// TODO: configure
-		if err := os.Mkdir("/tmp/"+convertedId, 0777); err != nil {
-			log.Error(err)
-			return err
-		}
-
-		// TODO: configure
-		err := ffmpeg.Input("/tmp/"+file.OriginalId+"/"+file.OriginalName).
-			Output("/tmp/"+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
-			// OverWriteOutput().
-			// ErrorToStdOut().
-			Run()
-
+		err := app.ConvertionToolRepo.Convert(file, format, kpbs)
 		if err != nil {
-			log.Warning("Could not convert file: " + err.Error())
-			// TODO: needs refactoring
-			err2 := user.RemoveFile(file.OriginalId)
-			if err2 != nil {
-				log.Warning("Error removing file: " + err2.Error())
-			}
-			continue
+			log.Warning(err.Error())
+			// TODO: remove file
+			// TODO message suer
 		}
-
-		file.ConvertedName = convertedName
-		file.ConvertedId = convertedId
-		file.IsConverted = true
 	}
 	return nil
 }
 
 func (app *Config) addFile(user *model.User, file *model.File) error {
 
-	// TODO: configure
-	if err := file.SaveToDisk("/tmp"); err != nil {
+	if err := file.SaveToDisk(app.OriginalPath); err != nil {
 		return err
 	}
 	if err := user.AddFile(file); err != nil {
@@ -125,14 +142,14 @@ func (app *Config) addFile(user *model.User, file *model.File) error {
 
 func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
 	for _, file := range files {
-		file.ValidateMaxFilesPerUser(user, 10)       //TODO: configuration
-		file.ValidateMaxSize(10000000)               //TODO: configuration
-		file.ValidateMaxSizePerUser(user, 100000000) //TODO: configuration
-		file.ValidateFileExtention([]string{"mp3"})  //TODO: configuration
+		file.ValidateMaxFilesPerUser(user, app.MaxFilesPerUser)
+		file.ValidateMaxSize(app.MaxFileSize)
+		file.ValidateMaxSizePerUser(user, app.MaxTotalSizePerUser)
+		file.ValidateFileExtention(app.OriginFileExtention)
 		if message, valid := file.GetValidity(); !valid {
 			log.Debug(message)
-			//TODO: add message to user
-			break
+			// TODO: message to the user
+			continue
 		}
 
 		if err := app.addFile(user, file); err != nil {
@@ -140,7 +157,7 @@ func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
 		}
 	}
 	user.IsUploading = false
-	if err := app.saveUser( /* Repo, */ user); err != nil {
+	if err := app.saveUser(user); err != nil {
 		log.Warning(err.Error())
 	}
 }
@@ -185,4 +202,11 @@ func (app *Config) GetFlash(w http.ResponseWriter, r *http.Request) string {
 		return ""
 	}
 	return msg
+}
+func sliceToString(s []string) string {
+	ps := []string{}
+	for _, f := range s {
+		ps = append(ps, "."+f)
+	}
+	return strings.Join(ps, ",")
 }

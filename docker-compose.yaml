@@ -20,6 +20,13 @@ services:
       VERBOSITY: 4
       SESSION_KEY: compose
       QUEUE_CONNECTION_STRING: "amqp://guest:guest@rabbitmq:5672/"
+      MAX_FILES_PER_USER: 10
+      MAX_FILE_SIZE: "10000000"
+      MAX_TOTAL_SIZE_PER_USER: "100000000"
+      ORIGINAL_FILE_EXTENTION: "wav,mp3"
+      TARGET_FILE_EXTENTION: "ogg,aac"
+      ORIGINAL_FILES_PATH: /tmp/original
+      CONVERTED_FILES_PATH: /tmp/converted
 
   redis:
     image: redis:6.2-alpine

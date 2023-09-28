@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/nu12/audio-gonverter/internal/model"
-	"github.com/nu12/audio-gonverter/internal/rabbitmq"
+	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
 type TemplateData struct {
@@ -14,6 +14,8 @@ type TemplateData struct {
 	FilesCount int
 	Commit     string
 	Message    string
+	Accepted   string
+	Formats    []string
 }
 
 func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +27,8 @@ func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 		Files:      user.Files,
 		FilesCount: len(user.Files),
 		Message:    app.GetFlash(w, r),
+		Accepted:   sliceToString(app.OriginFileExtention),
+		Formats:    app.TargetFileExtention,
 	}
 
 	app.render(w, "index.page.gohtml", td)
@@ -69,13 +73,13 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := r.Context().Value(userID("user")).(*model.User)
-	message := rabbitmq.Message{
+	message := repository.QueueMessage{
 		UserUUID: user.UUID,
 		Format:   r.PostForm.Get("format"),
 		Kbps:     r.PostForm.Get("kbps"),
 	}
 
-	encoded, err := rabbitmq.Encode(message)
+	encoded, err := app.QueueRepo.Encode(message)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -132,7 +136,7 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Download page")
 
 	uuid := r.URL.Query().Get("uuid")
-	dir, err := os.Open("/tmp/" + uuid)
+	dir, err := os.Open(app.ConvertedPath + uuid)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -144,7 +148,7 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.Open("/tmp/" + uuid + "/" + files[0])
+	f, err := os.Open(app.ConvertedPath + uuid + "/" + files[0])
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return

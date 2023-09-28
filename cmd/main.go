@@ -7,23 +7,27 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
+	"github.com/nu12/audio-gonverter/internal/ffmpeg"
 	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 	"github.com/nu12/audio-gonverter/internal/repository"
 )
 
-const (
-	ORIGINAL_PATH  = "/tmp/original/"
-	CONVERTED_PATH = "/tmp/converted/"
-)
-
 type Config struct {
-	TemplatesPath   string
-	StaticFilesPath string
-	SessionStore    *sessions.CookieStore
-	DatabaseRepo    repository.DatabaseRepository
-	QueueRepo       repository.QueueRepository
-	Env             map[string]string
+	TemplatesPath       string
+	StaticFilesPath     string
+	SessionStore        *sessions.CookieStore
+	DatabaseRepo        repository.DatabaseRepository
+	QueueRepo           repository.QueueRepository
+	ConvertionToolRepo  repository.ConvertionToolRepo
+	Env                 map[string]string
+	MaxFilesPerUser     int
+	MaxFileSize         int
+	MaxTotalSizePerUser int
+	OriginFileExtention []string
+	TargetFileExtention []string
+	OriginalPath        string
+	ConvertedPath       string
 }
 
 var log = logging.NewLogger()
@@ -50,6 +54,10 @@ func main() {
 	}
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
+	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{
+		InputPath:  app.OriginalPath,
+		OutputPath: app.ConvertedPath,
+	}
 
 	q := &rabbitmq.RabbitQueue{}
 	err = errors.New("No queue available")
