@@ -13,7 +13,7 @@ type TemplateData struct {
 	Files      []*model.File
 	FilesCount int
 	Commit     string
-	Message    string
+	Messages   []string
 	Accepted   string
 	Formats    []string
 }
@@ -26,7 +26,7 @@ func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 		Commit:     app.Env["COMMIT"],
 		Files:      user.Files,
 		FilesCount: len(user.Files),
-		Message:    app.GetFlash(w, r),
+		Messages:   app.GetFlash(user),
 		Accepted:   sliceToString(app.OriginFileExtention),
 		Formats:    app.TargetFileExtention,
 	}
@@ -113,7 +113,7 @@ func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	app.AddFlash(w, r, "Deleted file")
+	app.AddFlash(user, "Deleted file")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -128,7 +128,7 @@ func (app *Config) DeleteAll(w http.ResponseWriter, r *http.Request) {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	app.AddFlash(w, r, "Deleted all files")
+	app.AddFlash(user, "Deleted all files")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -136,7 +136,7 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Download page")
 
 	uuid := r.URL.Query().Get("uuid")
-	dir, err := os.Open(app.ConvertedPath + uuid)
+	dir, err := os.Open(app.ConvertedPath + "/" + uuid)
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -148,7 +148,7 @@ func (app *Config) Download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.Open(app.ConvertedPath + uuid + "/" + files[0])
+	f, err := os.Open(app.ConvertedPath + "/" + uuid + "/" + files[0])
 	if err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return

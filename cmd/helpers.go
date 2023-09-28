@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -73,10 +72,6 @@ func (app *Config) startWeb(c chan<- error, s CustomHTTPServer) {
 	}
 	app.SessionStore = sessions.NewCookieStore([]byte(app.Env["SESSION_KEY"]))
 
-	if err := app.loadConfigs(); err != nil {
-		c <- err
-	}
-
 	if err := s.ListenAndServe(); err != nil {
 		c <- err
 	}
@@ -101,7 +96,6 @@ func (app *Config) startWorker(c chan<- error) {
 			continue
 		}
 		if err := app.convert(user, decoded.Format, decoded.Kbps); err != nil {
-			// TODO: message to the user
 			log.Warning("Error converting file")
 		}
 		user.IsConverting = false
@@ -118,8 +112,7 @@ func (app *Config) convert(user *model.User, format, kpbs string) error {
 		err := app.ConvertionToolRepo.Convert(file, format, kpbs)
 		if err != nil {
 			log.Warning(err.Error())
-			// TODO: remove file
-			// TODO message suer
+			user.AddMessage(fmt.Sprintf("Error converting file %s (%s). Try again with different parameters.", file.OriginalName, err.Error()))
 		}
 	}
 	return nil
@@ -148,7 +141,7 @@ func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
 		file.ValidateFileExtention(app.OriginFileExtention)
 		if message, valid := file.GetValidity(); !valid {
 			log.Debug(message)
-			// TODO: message to the user
+			user.AddMessage(fmt.Sprintf("File %s: %s.", file.OriginalName, message))
 			continue
 		}
 
@@ -170,38 +163,22 @@ func (app *Config) loadUser(id string) (*model.User, error) {
 	return app.DatabaseRepo.Load(id)
 }
 
-func (app *Config) AddFlash(w http.ResponseWriter, r *http.Request, msg string) {
-	s, err := app.SessionStore.Get(r, "audio-gonverter")
-	if err != nil {
-		app.write(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	s.AddFlash(msg)
-	err = s.Save(r, w)
-	if err != nil {
-		app.write(w, err.Error(), http.StatusInternalServerError)
-		return
+func (app *Config) AddFlash(u *model.User, msg string) {
+	u.AddMessage(msg)
+	if err := app.saveUser(u); err != nil {
+		log.Warning("Error saving user with flash message: " + err.Error())
 	}
 }
 
-func (app *Config) GetFlash(w http.ResponseWriter, r *http.Request) string {
-	s, err := app.SessionStore.Get(r, "audio-gonverter")
-	if err != nil {
-		app.write(w, err.Error(), http.StatusInternalServerError)
-		return ""
+func (app *Config) GetFlash(u *model.User) []string {
+	if len(u.Messages) == 0 {
+		return []string{"Welcome to audio-gonverter!"}
 	}
-	f := s.Flashes()
-	if len(f) == 0 {
-		return "Welcome to audio-gonverter"
+	messages := u.GetMessages()
+	if err := app.saveUser(u); err != nil {
+		log.Warning("Error saving user without flash messages: " + err.Error())
 	}
-
-	msg := f[0].(string)
-	err = s.Save(r, w)
-	if err != nil {
-		app.write(w, err.Error(), http.StatusInternalServerError)
-		return ""
-	}
-	return msg
+	return messages
 }
 func sliceToString(s []string) string {
 	ps := []string{}

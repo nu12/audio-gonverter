@@ -110,11 +110,11 @@ func (app *Config) StatusCheck(next http.Handler) http.Handler {
 		user := r.Context().Value(userID("user")).(*model.User)
 
 		if user.IsConverting {
-			app.render(w, "status.page.gohtml", TemplateData{Message: "Converting", Commit: app.Env["COMMIT"]})
+			app.render(w, "status.page.gohtml", TemplateData{Messages: []string{"Converting"}, Commit: app.Env["COMMIT"]})
 			return
 		}
 		if user.IsUploading {
-			app.render(w, "status.page.gohtml", TemplateData{Message: "Uploading", Commit: app.Env["COMMIT"]})
+			app.render(w, "status.page.gohtml", TemplateData{Messages: []string{"Uploading"}, Commit: app.Env["COMMIT"]})
 			return
 		}
 

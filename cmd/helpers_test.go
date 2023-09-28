@@ -159,15 +159,15 @@ func TestAddFilesAndSave(t *testing.T) {
 func TestFlash(t *testing.T) {
 	testApp := &Config{
 		SessionStore: sessions.NewCookieStore([]byte("test")),
+		DatabaseRepo: &database.MockDB{Messages: []string{}},
 	}
 
-	w := TestResponseWriter{}
-	r := &http.Request{}
+	user := model.NewUser()
 
 	expected := "Test message"
 
-	testApp.AddFlash(w, r, expected)
-	got := testApp.GetFlash(w, r)
+	testApp.AddFlash(&user, expected)
+	got := testApp.GetFlash(&user)[0]
 
 	if expected != got {
 		t.Errorf("Expected %s, got %s", expected, got)

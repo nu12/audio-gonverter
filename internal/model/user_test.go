@@ -68,3 +68,20 @@ func TestAddAndRemoveFile(t *testing.T) {
 		t.Errorf("User shouldn't have any file")
 	}
 }
+
+func TestMessages(t *testing.T) {
+	message := "Test"
+	user := NewUser()
+	user.AddMessage(message)
+	if len(user.Messages) != 1 {
+		t.Errorf("Expected user to have 1 message, got %d", len(user.Messages))
+	}
+
+	if got := user.GetMessages()[0]; got != message {
+		t.Errorf("Expected message %s, got %s", message, got)
+	}
+
+	if got := user.GetMessages()[0]; got != "Welcome to audio-gonverter!" {
+		t.Errorf("Expected default message, got %s", got)
+	}
+}
