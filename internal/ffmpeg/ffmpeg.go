@@ -17,13 +17,13 @@ func (f *Ffmpeg) Convert(file *model.File, format, kpbs string) error {
 	convertedId := model.GenerateUUID()
 	convertedName := file.Prefix() + "." + format
 
-	if err := os.Mkdir(f.OutputPath+convertedId, 0777); err != nil {
+	if err := os.Mkdir(f.OutputPath+"/"+convertedId, 0777); err != nil {
 
 		return err
 	}
 
-	err := ffmpeg.Input(f.InputPath+file.OriginalId+"/"+file.OriginalName).
-		Output(f.OutputPath+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
+	err := ffmpeg.Input(f.InputPath+"/"+file.OriginalId+"/"+file.OriginalName).
+		Output(f.OutputPath+"/"+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
 		// OverWriteOutput().
 		// ErrorToStdOut().
 		Run()

@@ -2,7 +2,9 @@ package database
 
 import "github.com/nu12/audio-gonverter/internal/model"
 
-type MockDB struct{}
+type MockDB struct {
+	Messages []string
+}
 
 func (*MockDB) Save(*model.User) error {
 	return nil

@@ -3,7 +3,9 @@
 {{define "content" }}
 <main>
     <section>
-        <p>{{ .Message }}</p>
+        {{ range $message := .Messages }}
+            <p>{{ $message }}</p>
+        {{ end }}
     </section>
     <hr />
     <section>

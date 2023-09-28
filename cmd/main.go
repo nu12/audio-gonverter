@@ -54,6 +54,10 @@ func main() {
 	}
 
 	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
+
+	if err := app.loadConfigs(); err != nil {
+		log.Fatal(err)
+	}
 	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{
 		InputPath:  app.OriginalPath,
 		OutputPath: app.ConvertedPath,
