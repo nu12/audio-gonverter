@@ -1,9 +1,14 @@
-package model
+package user
 
 import (
 	"reflect"
+	"regexp"
 	"testing"
+
+	"github.com/nu12/audio-gonverter/internal/file"
 )
+
+var validUUID = regexp.MustCompile(`\S{8}-\S{4}-\S{4}-\S{4}-\S{12}`)
 
 func TestNewUseer(t *testing.T) {
 
@@ -32,8 +37,8 @@ func TestNewUseer(t *testing.T) {
 
 func TestAddAndRemoveFile(t *testing.T) {
 	u := NewUser()
-	f1, _ := NewFile("test1.mp3")
-	f2, _ := NewFile("test2.mp3")
+	f1, _ := file.NewFile("test1.mp3")
+	f2, _ := file.NewFile("test2.mp3")
 
 	if err := u.AddFile(f1); err != nil {
 		t.Errorf(err.Error())

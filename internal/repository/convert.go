@@ -1,7 +1,7 @@
 package repository
 
-import "github.com/nu12/audio-gonverter/internal/model"
+import "github.com/nu12/audio-gonverter/internal/file"
 
 type ConvertionToolRepo interface {
-	Convert(file *model.File, format, kpbs string) error
+	Convert(file *file.File, format, kpbs string) error
 }

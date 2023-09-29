@@ -1,15 +1,18 @@
-package model
+package file
 
 import (
 	"mime/multipart"
 	"os"
 	"reflect"
+	"regexp"
 	"testing"
 )
 
 var prefix = "new_file"
 var extention = "mp3"
 var orignalName = prefix + "." + extention
+
+var validUUID = regexp.MustCompile(`\S{8}-\S{4}-\S{4}-\S{4}-\S{12}`)
 
 func TestNewFile(t *testing.T) {
 
@@ -177,18 +180,16 @@ func TestValidateMaxSizePerUser(t *testing.T) {
 	maxSizePerUser := 5001
 	invalidityMessage := "User's file size limit reached"
 
-	user := NewUser()
 	file1, err := NewFile("File1.mp3")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	file1.addRawFile(&multipart.FileHeader{Size: 5000})
-	file1.ValidateMaxSizePerUser(&user, maxSizePerUser)
+	file1.ValidateMaxSizePerUser([]*File{}, maxSizePerUser)
 	if _, valid := file1.GetValidity(); !valid {
 		t.Errorf("Expected first file to be valid")
 	}
 
-	err = user.AddFile(file1)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -198,7 +199,7 @@ func TestValidateMaxSizePerUser(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	file2.addRawFile(&multipart.FileHeader{Size: 5000})
-	file2.ValidateMaxSizePerUser(&user, maxSizePerUser)
+	file2.ValidateMaxSizePerUser([]*File{file1, file2}, maxSizePerUser)
 	if _, valid := file2.GetValidity(); valid {
 		t.Errorf("Expected second file to be invalid")
 	}
@@ -212,18 +213,16 @@ func TestValidateMaxFilesPerUser(t *testing.T) {
 	maxfilesPerUser := 1
 	invalidityMessage := "User's max files limit reached"
 
-	user := NewUser()
 	file1, err := NewFile("File1.mp3")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	file1.addRawFile(&multipart.FileHeader{})
-	file1.ValidateMaxFilesPerUser(&user, maxfilesPerUser)
+	file1.ValidateMaxFilesPerUser([]*File{}, maxfilesPerUser)
 	if _, valid := file1.GetValidity(); !valid {
 		t.Errorf("Expected first file to be valid")
 	}
 
-	err = user.AddFile(file1)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -233,7 +232,7 @@ func TestValidateMaxFilesPerUser(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	file2.addRawFile(&multipart.FileHeader{})
-	file2.ValidateMaxFilesPerUser(&user, maxfilesPerUser)
+	file2.ValidateMaxFilesPerUser([]*File{file1, file2}, maxfilesPerUser)
 	if _, valid := file2.GetValidity(); valid {
 		t.Errorf("Expected second file to be invalid")
 	}

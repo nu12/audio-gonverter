@@ -1,9 +1,9 @@
 package ffmpeg
 
-import "github.com/nu12/audio-gonverter/internal/model"
+import "github.com/nu12/audio-gonverter/internal/file"
 
 type FfmpegMock struct{}
 
-func (*FfmpegMock) Convert(file *model.File, format, kpbs string) error {
+func (*FfmpegMock) Convert(file *file.File, format, kpbs string) error {
 	return nil
 }

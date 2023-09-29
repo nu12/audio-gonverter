@@ -10,8 +10,9 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/ffmpeg"
-	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/file"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
+	"github.com/nu12/audio-gonverter/internal/user"
 )
 
 // Test loadEnv
@@ -115,9 +116,9 @@ func TestAddFile(t *testing.T) {
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
 
-	user := model.NewUser()
+	user := user.NewUser()
 
-	file, err := model.NewFile("test.mp3")
+	file, err := file.NewFile("test.mp3")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
@@ -138,10 +139,10 @@ func TestAddFilesAndSave(t *testing.T) {
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
 
-	user := model.NewUser()
+	user := user.NewUser()
 	user.IsUploading = true
 
-	files, err := model.FilesFromForm([]*multipart.FileHeader{
+	files, err := file.FilesFromForm([]*multipart.FileHeader{
 		{Filename: "file.mp3"},
 	})
 
@@ -162,7 +163,7 @@ func TestFlash(t *testing.T) {
 		DatabaseRepo: &database.MockDB{Messages: []string{}},
 	}
 
-	user := model.NewUser()
+	user := user.NewUser()
 
 	expected := "Test message"
 
