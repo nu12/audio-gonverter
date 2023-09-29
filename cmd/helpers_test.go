@@ -116,14 +116,14 @@ func TestAddFile(t *testing.T) {
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
 
-	user := user.NewUser()
+	user := user.New()
 
 	file, err := file.NewFile("test.mp3")
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	err = app.addFile(&user, file)
+	err = app.addFile(user, file)
 
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -139,7 +139,7 @@ func TestAddFilesAndSave(t *testing.T) {
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
 
-	user := user.NewUser()
+	user := user.New()
 	user.IsUploading = true
 
 	files, err := file.FilesFromForm([]*multipart.FileHeader{
@@ -150,7 +150,7 @@ func TestAddFilesAndSave(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	app.addFilesAndSave(&user, files)
+	app.addFilesAndSave(user, files)
 
 	if user.IsUploading {
 		t.Errorf("Error uploading files")
@@ -163,12 +163,12 @@ func TestFlash(t *testing.T) {
 		DatabaseRepo: &database.MockDB{Messages: []string{}},
 	}
 
-	user := user.NewUser()
+	user := user.New()
 
 	expected := "Test message"
 
-	testApp.AddFlash(&user, expected)
-	got := testApp.GetFlash(&user)[0]
+	testApp.AddFlash(user, expected)
+	got := testApp.GetFlash(user)[0]
 
 	if expected != got {
 		t.Errorf("Expected %s, got %s", expected, got)

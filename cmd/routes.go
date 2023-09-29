@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 	"text/template"
 
@@ -30,9 +29,6 @@ func (app *Config) routes() http.Handler {
 	return mux
 }
 
-// SA1029: Users of WithValue should define their own types for keys.
-type userID string
-
 func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -48,7 +44,7 @@ func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
 			return
 		}
 
-		user := user.NewUser()
+		user := user.New()
 		session.Values["user"] = user.UUID
 		log.Debug("Created new User for session: " + user.UUID)
 
@@ -58,7 +54,7 @@ func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
 			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
-		if err := app.saveUser(&user); err != nil {
+		if err := app.saveUser(user); err != nil {
 			log.Error(err)
 			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
@@ -98,9 +94,7 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 			app.write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
-		ctx := r.Context()
-		newCtx := context.WithValue(ctx, userID("user"), user)
-		sr := r.WithContext(newCtx)
+		sr := r.WithContext(user.ToContext(r.Context()))
 		next.ServeHTTP(w, sr)
 	})
 }
@@ -108,7 +102,7 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 func (app *Config) StatusCheck(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		user := r.Context().Value(userID("user")).(*user.User)
+		user := user.FromRequest(r)
 
 		if user.IsConverting {
 			app.render(w, "status.page.gohtml", TemplateData{Messages: []string{"Converting"}, Commit: app.Env["COMMIT"]})

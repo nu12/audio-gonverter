@@ -1,6 +1,7 @@
 package user
 
 import (
+	"net/http"
 	"reflect"
 	"regexp"
 	"testing"
@@ -10,11 +11,11 @@ import (
 
 var validUUID = regexp.MustCompile(`\S{8}-\S{4}-\S{4}-\S{4}-\S{12}`)
 
-func TestNewUseer(t *testing.T) {
+func TestNewUser(t *testing.T) {
 
-	u := NewUser()
+	u := New()
 
-	if reflect.TypeOf(u) != reflect.TypeOf(User{}) {
+	if reflect.TypeOf(u) != reflect.TypeOf(&User{}) {
 		t.Errorf("User type doesn't match")
 	}
 
@@ -36,7 +37,7 @@ func TestNewUseer(t *testing.T) {
 }
 
 func TestAddAndRemoveFile(t *testing.T) {
-	u := NewUser()
+	u := New()
 	f1, _ := file.NewFile("test1.mp3")
 	f2, _ := file.NewFile("test2.mp3")
 
@@ -76,7 +77,7 @@ func TestAddAndRemoveFile(t *testing.T) {
 
 func TestMessages(t *testing.T) {
 	message := "Test"
-	user := NewUser()
+	user := New()
 	user.AddMessage(message)
 	if len(user.Messages) != 1 {
 		t.Errorf("Expected user to have 1 message, got %d", len(user.Messages))
@@ -88,5 +89,22 @@ func TestMessages(t *testing.T) {
 
 	if got := user.GetMessages()[0]; got != "Welcome to audio-gonverter!" {
 		t.Errorf("Expected default message, got %s", got)
+	}
+}
+
+func TestFromRequest(t *testing.T) {
+	var u *User
+	r := &http.Request{}
+	u = FromRequest(r)
+
+	if u.Err() == nil {
+		t.Errorf("Expected error, got nil")
+	}
+
+	sr := r.WithContext(New().ToContext(r.Context()))
+	u = FromRequest(sr)
+
+	if u.Err() != nil {
+		t.Errorf("Unexpected error")
 	}
 }
