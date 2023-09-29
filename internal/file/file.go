@@ -1,4 +1,4 @@
-package model
+package file
 
 import (
 	"io"
@@ -117,12 +117,12 @@ func (f *File) ValidateMaxSize(maxSize int) {
 	}
 }
 
-func (f *File) ValidateMaxSizePerUser(user *User, maxSizePerUser int) {
+func (f *File) ValidateMaxSizePerUser(current []*File, maxSizePerUser int) {
 	if !f.raw.IsValid {
 		return
 	}
 	currentUserFileSize := 0
-	for _, file := range user.Files {
+	for _, file := range current {
 		if file.getRawFile() != nil {
 			currentUserFileSize += int(file.raw.File.Size)
 		} else {
@@ -136,12 +136,12 @@ func (f *File) ValidateMaxSizePerUser(user *User, maxSizePerUser int) {
 	}
 }
 
-func (f *File) ValidateMaxFilesPerUser(user *User, maxFilesPerUser int) {
+func (f *File) ValidateMaxFilesPerUser(current []*File, maxFilesPerUser int) {
 	if !f.raw.IsValid {
 		return
 	}
 
-	if (len(user.Files)) >= maxFilesPerUser {
+	if (len(current)) >= maxFilesPerUser {
 		f.raw.IsValid = false
 		f.raw.InvalidityMessage = "User's max files limit reached"
 	}

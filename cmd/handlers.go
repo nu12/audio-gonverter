@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/file"
 	"github.com/nu12/audio-gonverter/internal/repository"
+	"github.com/nu12/audio-gonverter/internal/user"
 )
 
 type TemplateData struct {
-	Files      []*model.File
+	Files      []*file.File
 	FilesCount int
 	Commit     string
 	Messages   []string
@@ -20,7 +21,7 @@ type TemplateData struct {
 
 func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Home page")
-	user := r.Context().Value(userID("user")).(*model.User)
+	user := r.Context().Value(userID("user")).(*user.User)
 
 	td := TemplateData{
 		Commit:     app.Env["COMMIT"],
@@ -43,7 +44,7 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(userID("user")).(*model.User)
+	user := r.Context().Value(userID("user")).(*user.User)
 	user.IsUploading = true
 	if err := app.saveUser(user); err != nil {
 		log.Error(err)
@@ -51,7 +52,7 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files, err := model.FilesFromForm(r.MultipartForm.File["files"])
+	files, err := file.FilesFromForm(r.MultipartForm.File["files"])
 	if err != nil {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -72,7 +73,7 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	user := r.Context().Value(userID("user")).(*model.User)
+	user := r.Context().Value(userID("user")).(*user.User)
 	message := repository.QueueMessage{
 		UserUUID: user.UUID,
 		Format:   r.PostForm.Get("format"),
@@ -103,7 +104,7 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Delete page")
-	user := r.Context().Value(userID("user")).(*model.User)
+	user := r.Context().Value(userID("user")).(*user.User)
 	uuid := r.URL.Query().Get("uuid")
 	if err := user.RemoveFile(uuid); err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
@@ -119,7 +120,7 @@ func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	log.Debug("DeleteAll page")
-	user := r.Context().Value(userID("user")).(*model.User)
+	user := r.Context().Value(userID("user")).(*user.User)
 	if err := user.ClearFiles(); err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return

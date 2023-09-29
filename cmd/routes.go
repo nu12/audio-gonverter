@@ -6,7 +6,8 @@ import (
 	"text/template"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/file"
+	"github.com/nu12/audio-gonverter/internal/user"
 )
 
 func (app *Config) routes() http.Handler {
@@ -47,7 +48,7 @@ func (app *Config) CreateSessionAndUser(next http.Handler) http.Handler {
 			return
 		}
 
-		user := model.NewUser()
+		user := user.NewUser()
 		session.Values["user"] = user.UUID
 		log.Debug("Created new User for session: " + user.UUID)
 
@@ -77,7 +78,7 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 		}
 		e, err := app.DatabaseRepo.Exist(session.Values["user"].(string))
 		if !e && err == nil {
-			u := &model.User{UUID: session.Values["user"].(string), Files: []*model.File{}}
+			u := &user.User{UUID: session.Values["user"].(string), Files: []*file.File{}}
 			err2 := app.saveUser(u)
 			if err2 != nil {
 				log.Error(err)
@@ -107,7 +108,7 @@ func (app *Config) LoadSessionAndUser(next http.Handler) http.Handler {
 func (app *Config) StatusCheck(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		user := r.Context().Value(userID("user")).(*model.User)
+		user := r.Context().Value(userID("user")).(*user.User)
 
 		if user.IsConverting {
 			app.render(w, "status.page.gohtml", TemplateData{Messages: []string{"Converting"}, Commit: app.Env["COMMIT"]})

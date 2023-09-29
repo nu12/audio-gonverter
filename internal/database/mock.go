@@ -1,21 +1,24 @@
 package database
 
-import "github.com/nu12/audio-gonverter/internal/model"
+import (
+	"github.com/nu12/audio-gonverter/internal/file"
+	"github.com/nu12/audio-gonverter/internal/user"
+)
 
 type MockDB struct {
 	Messages []string
 }
 
-func (*MockDB) Save(*model.User) error {
+func (*MockDB) Save(*user.User) error {
 	return nil
 }
 
-func (*MockDB) Load(id string) (*model.User, error) {
-	return &model.User{
+func (*MockDB) Load(id string) (*user.User, error) {
+	return &user.User{
 		UUID:         id,
 		IsUploading:  false,
 		IsConverting: false,
-		Files: []*model.File{
+		Files: []*file.File{
 			{
 				OriginalName:  "MockFile1.mp3",
 				ConvertedName: "MockFile1.ogg",

@@ -3,7 +3,7 @@ package ffmpeg
 import (
 	"os"
 
-	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/file"
 	ffmpeg "github.com/u2takey/ffmpeg-go"
 )
 
@@ -12,18 +12,18 @@ type Ffmpeg struct {
 	OutputPath string
 }
 
-func (f *Ffmpeg) Convert(file *model.File, format, kpbs string) error {
+func (ff *Ffmpeg) Convert(f *file.File, format, kpbs string) error {
 
-	convertedId := model.GenerateUUID()
-	convertedName := file.Prefix() + "." + format
+	convertedId := file.GenerateUUID()
+	convertedName := f.Prefix() + "." + format
 
-	if err := os.Mkdir(f.OutputPath+"/"+convertedId, 0777); err != nil {
+	if err := os.Mkdir(ff.OutputPath+"/"+convertedId, 0777); err != nil {
 
 		return err
 	}
 
-	err := ffmpeg.Input(f.InputPath+"/"+file.OriginalId+"/"+file.OriginalName).
-		Output(f.OutputPath+"/"+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
+	err := ffmpeg.Input(ff.InputPath+"/"+f.OriginalId+"/"+f.OriginalName).
+		Output(ff.OutputPath+"/"+convertedId+"/"+convertedName, ffmpeg.KwArgs{"b:a": kpbs + "k"}).
 		// OverWriteOutput().
 		// ErrorToStdOut().
 		Run()
@@ -32,9 +32,9 @@ func (f *Ffmpeg) Convert(file *model.File, format, kpbs string) error {
 		return err
 	}
 
-	file.ConvertedName = convertedName
-	file.ConvertedId = convertedId
-	file.IsConverted = true
+	f.ConvertedName = convertedName
+	f.ConvertedId = convertedId
+	f.IsConverted = true
 
 	return nil
 }

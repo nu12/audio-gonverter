@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/gorilla/sessions"
-	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/file"
+	"github.com/nu12/audio-gonverter/internal/user"
 )
 
 func (app *Config) loadEnv(required []string) error {
@@ -106,7 +107,7 @@ func (app *Config) startWorker(c chan<- error) {
 	}
 }
 
-func (app *Config) convert(user *model.User, format, kpbs string) error {
+func (app *Config) convert(user *user.User, format, kpbs string) error {
 	for _, file := range user.Files {
 
 		err := app.ConvertionToolRepo.Convert(file, format, kpbs)
@@ -118,7 +119,7 @@ func (app *Config) convert(user *model.User, format, kpbs string) error {
 	return nil
 }
 
-func (app *Config) addFile(user *model.User, file *model.File) error {
+func (app *Config) addFile(user *user.User, file *file.File) error {
 
 	if err := file.SaveToDisk(app.OriginalPath); err != nil {
 		return err
@@ -133,11 +134,11 @@ func (app *Config) addFile(user *model.User, file *model.File) error {
 	return nil
 }
 
-func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
+func (app *Config) addFilesAndSave(user *user.User, files []*file.File) {
 	for _, file := range files {
-		file.ValidateMaxFilesPerUser(user, app.MaxFilesPerUser)
+		file.ValidateMaxFilesPerUser(user.Files, app.MaxFilesPerUser)
 		file.ValidateMaxSize(app.MaxFileSize)
-		file.ValidateMaxSizePerUser(user, app.MaxTotalSizePerUser)
+		file.ValidateMaxSizePerUser(user.Files, app.MaxTotalSizePerUser)
 		file.ValidateFileExtention(app.OriginFileExtention)
 		if message, valid := file.GetValidity(); !valid {
 			log.Debug(message)
@@ -155,22 +156,22 @@ func (app *Config) addFilesAndSave(user *model.User, files []*model.File) {
 	}
 }
 
-func (app *Config) saveUser(user *model.User) error {
+func (app *Config) saveUser(user *user.User) error {
 	return app.DatabaseRepo.Save(user)
 }
 
-func (app *Config) loadUser(id string) (*model.User, error) {
+func (app *Config) loadUser(id string) (*user.User, error) {
 	return app.DatabaseRepo.Load(id)
 }
 
-func (app *Config) AddFlash(u *model.User, msg string) {
+func (app *Config) AddFlash(u *user.User, msg string) {
 	u.AddMessage(msg)
 	if err := app.saveUser(u); err != nil {
 		log.Warning("Error saving user with flash message: " + err.Error())
 	}
 }
 
-func (app *Config) GetFlash(u *model.User) []string {
+func (app *Config) GetFlash(u *user.User) []string {
 	if len(u.Messages) == 0 {
 		return []string{"Welcome to audio-gonverter!"}
 	}

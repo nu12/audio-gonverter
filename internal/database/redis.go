@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/nu12/audio-gonverter/internal/model"
+	"github.com/nu12/audio-gonverter/internal/user"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -24,13 +24,12 @@ func NewRedis(host, port, password string) *RedisRepo {
 	}
 }
 
-func (r *RedisRepo) Save(u *model.User) error {
+func (r *RedisRepo) Save(u *user.User) error {
 	userJson, err := json.Marshal(*u)
 	if err != nil {
 		return err
 	}
 
-	//TODO: Add expiration
 	err = r.Client.Set(context.TODO(), u.UUID, string(userJson), 1*time.Hour).Err()
 	if err != nil {
 		return err
@@ -38,22 +37,21 @@ func (r *RedisRepo) Save(u *model.User) error {
 	return nil
 }
 
-// TODO: refactor to return error
-func (r *RedisRepo) Load(uuid string) (*model.User, error) {
+func (r *RedisRepo) Load(uuid string) (*user.User, error) {
 
 	userJson, err := r.Client.Get(context.TODO(), uuid).Result()
 	if err != nil {
-		u := model.NewUser()
+		u := user.NewUser()
 		return &u, err
 	}
 
-	var user model.User
-	err = json.Unmarshal([]byte(userJson), &user)
+	var u user.User
+	err = json.Unmarshal([]byte(userJson), &u)
 	if err != nil {
-		u := model.NewUser()
+		u := user.NewUser()
 		return &u, err
 	}
-	return &user, nil
+	return &u, nil
 }
 
 func (r *RedisRepo) Exist(uuid string) (bool, error) {

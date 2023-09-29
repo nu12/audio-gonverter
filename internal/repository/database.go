@@ -1,9 +1,11 @@
 package repository
 
-import "github.com/nu12/audio-gonverter/internal/model"
+import (
+	"github.com/nu12/audio-gonverter/internal/user"
+)
 
 type DatabaseRepository interface {
-	Save(*model.User) error
-	Load(string) (*model.User, error)
+	Save(*user.User) error
+	Load(string) (*user.User, error)
 	Exist(string) (bool, error)
 }
