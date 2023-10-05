@@ -21,7 +21,7 @@ type TemplateData struct {
 
 func (app *Config) Home(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Home page")
-	user := r.Context().Value(userID("user")).(*user.User)
+	user := user.FromRequest(r)
 
 	td := TemplateData{
 		Commit:     app.Env["COMMIT"],
@@ -44,7 +44,7 @@ func (app *Config) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := r.Context().Value(userID("user")).(*user.User)
+	user := user.FromRequest(r)
 	user.IsUploading = true
 	if err := app.saveUser(user); err != nil {
 		log.Error(err)
@@ -73,7 +73,7 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	user := r.Context().Value(userID("user")).(*user.User)
+	user := user.FromRequest(r)
 	message := repository.QueueMessage{
 		UserUUID: user.UUID,
 		Format:   r.PostForm.Get("format"),
@@ -104,9 +104,9 @@ func (app *Config) Convert(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
 	log.Debug("Delete page")
-	user := r.Context().Value(userID("user")).(*user.User)
 	uuid := r.URL.Query().Get("uuid")
-	if err := user.RemoveFile(uuid); err != nil {
+	user := user.FromRequest(r)
+	if err := user.RemoveFile(uuid).Err(); err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -120,11 +120,8 @@ func (app *Config) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (app *Config) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	log.Debug("DeleteAll page")
-	user := r.Context().Value(userID("user")).(*user.User)
-	if err := user.ClearFiles(); err != nil {
-		app.write(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	user := user.FromRequest(r).ClearFiles()
+
 	if err := app.saveUser(user); err != nil {
 		app.write(w, err.Error(), http.StatusInternalServerError)
 		return

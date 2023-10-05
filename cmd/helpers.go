@@ -124,7 +124,7 @@ func (app *Config) addFile(user *user.User, file *file.File) error {
 	if err := file.SaveToDisk(app.OriginalPath); err != nil {
 		return err
 	}
-	if err := user.AddFile(file); err != nil {
+	if err := user.AddFile(file).Err(); err != nil {
 		return err
 	}
 	if err := app.saveUser(user); err != nil {

@@ -41,15 +41,15 @@ func (r *RedisRepo) Load(uuid string) (*user.User, error) {
 
 	userJson, err := r.Client.Get(context.TODO(), uuid).Result()
 	if err != nil {
-		u := user.NewUser()
-		return &u, err
+		u := user.New()
+		return u, err
 	}
 
 	var u user.User
 	err = json.Unmarshal([]byte(userJson), &u)
 	if err != nil {
-		u := user.NewUser()
-		return &u, err
+		u := user.New()
+		return u, err
 	}
 	return &u, nil
 }
