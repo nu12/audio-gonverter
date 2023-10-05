@@ -41,7 +41,7 @@ func TestAddAndRemoveFile(t *testing.T) {
 	f1, _ := file.NewFile("test1.mp3")
 	f2, _ := file.NewFile("test2.mp3")
 
-	if err := u.AddFile(f1); err != nil {
+	if err := u.AddFile(f1).Err(); err != nil {
 		t.Errorf(err.Error())
 	}
 
@@ -49,14 +49,14 @@ func TestAddAndRemoveFile(t *testing.T) {
 		t.Errorf("User should have 1 file")
 	}
 
-	if err := u.AddFile(f2); err != nil {
+	if err := u.AddFile(f2).Err(); err != nil {
 		t.Errorf(err.Error())
 	}
 	if len(u.Files) != 2 {
 		t.Errorf("User should have 2 file")
 	}
 
-	if err := u.RemoveFile(f2.OriginalId); err != nil {
+	if err := u.RemoveFile(f2.OriginalId).Err(); err != nil {
 		t.Errorf(err.Error())
 	}
 	if len(u.Files) != 1 {
@@ -67,7 +67,7 @@ func TestAddAndRemoveFile(t *testing.T) {
 		t.Errorf("File name doesn't match")
 	}
 
-	if err := u.ClearFiles(); err != nil {
+	if err := u.ClearFiles().Err(); err != nil {
 		t.Errorf(err.Error())
 	}
 	if len(u.Files) != 0 {

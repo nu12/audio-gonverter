@@ -69,7 +69,7 @@ func main() {
 		q, err = rabbitmq.Connect(app.Env["QUEUE_CONNECTION_STRING"])
 		if err != nil {
 			time.Sleep(time.Duration(i) * time.Second)
-			log.Debug("Queue not ready, waiting...")
+			log.Warning("Queue not ready, waiting...")
 			continue
 		}
 		break

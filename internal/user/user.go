@@ -48,14 +48,22 @@ func (u *User) Err() error {
 	return u.err
 }
 
-func (u *User) AddFile(file *file.File) error {
+func (u *User) AddFile(file *file.File) *User {
+	if u.err != nil {
+		return u
+	}
+
 	files := u.Files
 	files = append(files, file)
 	u.Files = files
-	return nil
+	return u
 }
 
-func (u *User) RemoveFile(id string) error {
+func (u *User) RemoveFile(id string) *User {
+	if u.err != nil {
+		return u
+	}
+
 	files := []*file.File{}
 	for _, f := range u.Files {
 		if f.OriginalId != id {
@@ -63,16 +71,25 @@ func (u *User) RemoveFile(id string) error {
 		}
 	}
 	u.Files = files
-	return nil
+	return u
 }
 
-func (u *User) ClearFiles() error {
+func (u *User) ClearFiles() *User {
+	if u.err != nil {
+		return u
+	}
+
 	u.Files = []*file.File{}
-	return nil
+	return u
 }
 
-func (u *User) AddMessage(s string) {
+func (u *User) AddMessage(s string) *User {
+	if u.err != nil {
+		return u
+	}
+
 	u.Messages = append(u.Messages, s)
+	return u
 }
 
 func (u *User) GetMessages() []string {
