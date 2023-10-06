@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/nu12/audio-gonverter/internal/config"
@@ -12,14 +13,11 @@ import (
 	"github.com/nu12/audio-gonverter/internal/web"
 )
 
-var log = logging.NewLogger()
-
 func main() {
-	log.Info("Starting audio-gonverter")
 	q := &rabbitmq.RabbitQueue{}
-
 	app := config.
 		New("./cmd/templates/", "./cmd/static/").
+		WithLog(logging.NewLogger()).
 		LoadEnv([]string{
 			"WEB_ENABLED",
 			"WORKER_ENABLED",
@@ -44,12 +42,12 @@ func main() {
 	defer q.Channel.Close()
 
 	c := make(chan error, 1)
-	helper := &helper.Helper{Config: app, Log: log}
+	helper := &helper.Helper{Config: app}
 
 	if app.Env["WEB_ENABLED"] == "true" {
 		s := &http.Server{
 			Addr:    "0.0.0.0:8080",
-			Handler: web.Routes(app, log),
+			Handler: web.Routes(app),
 		}
 		go helper.StartWeb(c, s)
 	}

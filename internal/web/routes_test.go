@@ -17,8 +17,9 @@ func TestRoutes(t *testing.T) {
 		StaticFilesPath: "./../../cmd/static/",
 		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
 		DatabaseRepo:    &database.MockDB{},
+		Log:             &logging.Log{},
 	}
-	h := Routes(testApp, &logging.Log{})
+	h := Routes(testApp)
 
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
@@ -39,8 +40,9 @@ func TestStaticFiles(t *testing.T) {
 		StaticFilesPath: "./../../cmd/static/",
 		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
 		DatabaseRepo:    &database.MockDB{},
+		Log:             &logging.Log{},
 	}
-	h := Routes(testApp, &logging.Log{})
+	h := Routes(testApp)
 
 	for _, file := range []string{
 		"/static/css.css",

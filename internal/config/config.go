@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
+	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 	"github.com/nu12/audio-gonverter/internal/repository"
 )
@@ -28,6 +29,7 @@ type Config struct {
 	TargetFileExtention []string
 	OriginalPath        string
 	ConvertedPath       string
+	Log                 *logging.Log
 
 	err error
 }
@@ -113,6 +115,15 @@ func (app *Config) WithConvertionToolRepo(r repository.ConvertionToolRepo) *Conf
 	}
 
 	app.ConvertionToolRepo = r
+	return app
+}
+
+func (app *Config) WithLog(l *logging.Log) *Config {
+	if app.err != nil {
+		return app
+	}
+
+	app.Log = l
 	return app
 }
 

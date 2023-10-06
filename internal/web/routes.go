@@ -7,24 +7,22 @@ import (
 	"github.com/nu12/audio-gonverter/internal/config"
 	"github.com/nu12/audio-gonverter/internal/file"
 	"github.com/nu12/audio-gonverter/internal/helper"
-	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/user"
 )
 
 type Middleware struct {
 	Config *config.Config
-	Log    *logging.Log
 }
 
-func Routes(app *config.Config, log *logging.Log) http.Handler {
+func Routes(app *config.Config) http.Handler {
 	mux := chi.NewRouter()
 
-	m := Middleware{Config: app, Log: log}
+	m := Middleware{Config: app}
 	mux.Use(m.CreateSessionAndUser)
 	mux.Use(m.LoadSessionAndUser)
 	mux.Use(m.StatusCheck)
 
-	handler := Handler{Config: app, Log: log}
+	handler := Handler{Config: app}
 	mux.Get("/", handler.Home)
 	mux.Post("/upload", handler.Upload)
 	mux.Post("/convert", handler.Convert)
@@ -42,11 +40,11 @@ func (m *Middleware) CreateSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		helper := &helper.Helper{}
-		helper.WithConfig(m.Config).WithLog(m.Log)
+		helper.WithConfig(m.Config)
 
 		session, err := m.Config.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
-			m.Log.Error(err)
+			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
@@ -58,16 +56,16 @@ func (m *Middleware) CreateSessionAndUser(next http.Handler) http.Handler {
 
 		user := user.New()
 		session.Values["user"] = user.UUID
-		m.Log.Debug("Created new User for session: " + user.UUID)
+		m.Config.Log.Debug("Created new User for session: " + user.UUID)
 
 		session.Options.MaxAge = 3600 // 1 hour
 		if err := session.Save(r, w); err != nil {
-			m.Log.Error(err)
+			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
 		if err := helper.SaveUser(user); err != nil {
-			m.Log.Error(err)
+			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
@@ -79,11 +77,11 @@ func (m *Middleware) LoadSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		helper := &helper.Helper{}
-		helper.WithConfig(m.Config).WithLog(m.Log)
+		helper.WithConfig(m.Config)
 
 		session, err := m.Config.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
-			m.Log.Error(err)
+			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
@@ -92,20 +90,20 @@ func (m *Middleware) LoadSessionAndUser(next http.Handler) http.Handler {
 			u := &user.User{UUID: session.Values["user"].(string), Files: []*file.File{}}
 			err2 := helper.SaveUser(u)
 			if err2 != nil {
-				m.Log.Error(err)
+				m.Config.Log.Error(err)
 				write(w, err2.Error(), http.StatusInternalServerError)
 				return
 			}
 
 		} else if err != nil {
-			m.Log.Error(err)
+			m.Config.Log.Error(err)
 			write(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		user, err := helper.LoadUser(session.Values["user"].(string))
 		if err != nil {
-			m.Log.Error(err)
+			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
@@ -118,7 +116,7 @@ func (m *Middleware) StatusCheck(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		user := user.FromRequest(r)
-		handler := Handler{Config: m.Config, Log: m.Log}
+		handler := Handler{Config: m.Config}
 
 		if user.IsConverting {
 			handler.render(w, "status.page.gohtml", TemplateData{Messages: []string{"Converting"}, Commit: m.Config.Env["COMMIT"]})

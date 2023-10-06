@@ -17,12 +17,13 @@ func TestStartWorker(t *testing.T) {
 		QueueRepo:          &rabbitmq.QueueMock{},
 		DatabaseRepo:       &database.MockDB{},
 		ConvertionToolRepo: &ffmpeg.FfmpegMock{},
+		Log:                &logging.Log{},
 	}
 
 	t.Run("Start Worker", func(t *testing.T) {
 
 		h := &Helper{}
-		go h.WithConfig(app).WithLog(&logging.Log{}).StartWorker(c)
+		go h.WithConfig(app).StartWorker(c)
 
 		select {
 		case err := <-c:

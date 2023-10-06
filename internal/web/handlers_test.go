@@ -38,8 +38,9 @@ func TestUpload(t *testing.T) {
 		StaticFilesPath: "./static/",
 		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
 		DatabaseRepo:    &database.MockDB{},
+		Log:             &logging.Log{},
 	}
-	h := Routes(app, &logging.Log{})
+	h := Routes(app)
 
 	// https://stackoverflow.com/questions/43904974/testing-go-http-request-formfile
 	pr, pw := io.Pipe()
@@ -75,8 +76,9 @@ func TestConvert(t *testing.T) {
 		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
 		DatabaseRepo:    &database.MockDB{},
 		QueueRepo:       queue,
+		Log:             &logging.Log{},
 	}
-	h := Routes(testApp, &logging.Log{})
+	h := Routes(testApp)
 
 	form := url.Values{}
 	form.Add("format", "ogg")

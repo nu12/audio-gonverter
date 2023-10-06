@@ -14,7 +14,7 @@ type CustomHTTPServer interface {
 }
 
 func (h *Helper) StartWeb(c chan<- error, s CustomHTTPServer) {
-	h.Log.Info("Starting Web service")
+	h.Config.Log.Info("Starting Web service")
 	h.Config.LoadEnv([]string{"SESSION_KEY"})
 	h.Config.SessionStore = sessions.NewCookieStore([]byte(h.Config.Env["SESSION_KEY"]))
 
@@ -34,18 +34,18 @@ func (h *Helper) AddFilesAndSave(user *user.User, files []*file.File) {
 		file.ValidateMaxSizePerUser(user.Files, h.Config.MaxTotalSizePerUser)
 		file.ValidateFileExtention(h.Config.OriginFileExtention)
 		if message, valid := file.GetValidity(); !valid {
-			h.Log.Debug(message)
+			h.Config.Log.Debug(message)
 			user.AddMessage(fmt.Sprintf("File %s: %s.", file.OriginalName, message))
 			continue
 		}
 
 		if err := h.addFile(user, file); err != nil {
-			h.Log.Warning(err.Error())
+			h.Config.Log.Warning(err.Error())
 		}
 	}
 	user.IsUploading = false
 	if err := h.SaveUser(user); err != nil {
-		h.Log.Warning(err.Error())
+		h.Config.Log.Warning(err.Error())
 	}
 }
 

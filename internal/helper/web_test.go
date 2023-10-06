@@ -29,6 +29,7 @@ func TestStartWeb(t *testing.T) {
 	app := &config.Config{
 		DatabaseRepo: &database.MockDB{},
 		Env:          map[string]string{},
+		Log:          &logging.Log{},
 	}
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
@@ -51,7 +52,7 @@ func TestStartWeb(t *testing.T) {
 	t.Run("Start Web Service", func(t *testing.T) {
 		testServer := &TestServer{}
 		h := &Helper{}
-		go h.WithConfig(app).WithLog(&logging.Log{}).StartWeb(c, testServer)
+		go h.WithConfig(app).StartWeb(c, testServer)
 
 		select {
 		case err := <-c:
@@ -92,6 +93,7 @@ func TestAddFilesAndSave(t *testing.T) {
 	app := &config.Config{
 		DatabaseRepo: &database.MockDB{},
 		Env:          map[string]string{},
+		Log:          &logging.Log{},
 	}
 	os.Setenv("SESSION_KEY", "test-key")
 	defer os.Unsetenv("SESSION_KEY")
@@ -108,7 +110,7 @@ func TestAddFilesAndSave(t *testing.T) {
 	}
 
 	h := &Helper{}
-	h.WithConfig(app).WithLog(&logging.Log{}).AddFilesAndSave(user, files)
+	h.WithConfig(app).AddFilesAndSave(user, files)
 
 	if user.IsUploading {
 		t.Errorf("Error uploading files")

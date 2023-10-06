@@ -9,14 +9,12 @@ import (
 	"github.com/nu12/audio-gonverter/internal/config"
 	"github.com/nu12/audio-gonverter/internal/file"
 	"github.com/nu12/audio-gonverter/internal/helper"
-	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/repository"
 	"github.com/nu12/audio-gonverter/internal/user"
 )
 
 type Handler struct {
 	Config *config.Config
-	Log    *logging.Log
 }
 
 type TemplateData struct {
@@ -39,23 +37,23 @@ func write(w http.ResponseWriter, message string, status int) {
 func (handler *Handler) render(w http.ResponseWriter, templateName string, td TemplateData) {
 	t, err := template.New(templateName).ParseFiles(handler.Config.TemplatesPath+"base.layout.gohtml", handler.Config.TemplatesPath+templateName)
 	if err != nil {
-		handler.Log.Error(err)
+		handler.Config.Log.Error(err)
 		write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if err := t.Execute(w, td); err != nil {
-		handler.Log.Error(err)
+		handler.Config.Log.Error(err)
 		write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
 func (handler *Handler) Home(w http.ResponseWriter, r *http.Request) {
-	handler.Log.Debug("Home page")
+	handler.Config.Log.Debug("Home page")
 	user := user.FromRequest(r)
 	h := &helper.Helper{}
-	h.WithConfig(handler.Config).WithLog(handler.Log)
+	h.WithConfig(handler.Config)
 
 	td := TemplateData{
 		Commit:     handler.Config.Env["COMMIT"],
@@ -70,13 +68,13 @@ func (handler *Handler) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Upload(w http.ResponseWriter, r *http.Request) {
-	handler.Log.Debug("Upload")
+	handler.Config.Log.Debug("Upload")
 
 	h := &helper.Helper{}
-	h.WithConfig(handler.Config).WithLog(handler.Log)
+	h.WithConfig(handler.Config)
 
 	if err := r.ParseMultipartForm(50 << 20); err != nil {
-		handler.Log.Error(err)
+		handler.Config.Log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -84,14 +82,14 @@ func (handler *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	user := user.FromRequest(r)
 	user.IsUploading = true
 	if err := h.SaveUser(user); err != nil {
-		handler.Log.Error(err)
+		handler.Config.Log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	files, err := file.FilesFromForm(r.MultipartForm.File["files"])
 	if err != nil {
-		handler.Log.Error(err)
+		handler.Config.Log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -102,9 +100,9 @@ func (handler *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Convert(w http.ResponseWriter, r *http.Request) {
-	handler.Log.Debug("Convert")
+	handler.Config.Log.Debug("Convert")
 	h := &helper.Helper{}
-	h.WithConfig(handler.Config).WithLog(handler.Log)
+	h.WithConfig(handler.Config)
 
 	err := r.ParseForm()
 
@@ -130,7 +128,7 @@ func (handler *Handler) Convert(w http.ResponseWriter, r *http.Request) {
 		write(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	handler.Log.Debug("Sent message: " + encoded)
+	handler.Config.Log.Debug("Sent message: " + encoded)
 
 	user.IsConverting = true
 	if err := h.SaveUser(user); err != nil {
@@ -142,9 +140,9 @@ func (handler *Handler) Convert(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	handler.Log.Debug("Delete page")
+	handler.Config.Log.Debug("Delete page")
 	h := &helper.Helper{}
-	h.WithConfig(handler.Config).WithLog(handler.Log)
+	h.WithConfig(handler.Config)
 
 	uuid := r.URL.Query().Get("uuid")
 	user := user.FromRequest(r)
@@ -161,9 +159,9 @@ func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
-	handler.Log.Debug("DeleteAll page")
+	handler.Config.Log.Debug("DeleteAll page")
 	h := &helper.Helper{}
-	h.WithConfig(handler.Config).WithLog(handler.Log)
+	h.WithConfig(handler.Config)
 	user := user.FromRequest(r).ClearFiles()
 
 	if err := h.SaveUser(user); err != nil {
@@ -175,7 +173,7 @@ func (handler *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (handler *Handler) Download(w http.ResponseWriter, r *http.Request) {
-	handler.Log.Debug("Download page")
+	handler.Config.Log.Debug("Download page")
 
 	uuid := r.URL.Query().Get("uuid")
 	dir, err := os.Open(handler.Config.ConvertedPath + "/" + uuid)
