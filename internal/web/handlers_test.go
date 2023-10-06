@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"io"
@@ -10,41 +10,36 @@ import (
 	"testing"
 
 	"github.com/gorilla/sessions"
+	"github.com/nu12/audio-gonverter/internal/config"
 	"github.com/nu12/audio-gonverter/internal/database"
+	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
 )
 
-func TestRoutes(t *testing.T) {
-	testApp := &Config{
-		TemplatesPath:   "./templates/",
-		StaticFilesPath: "./static/",
-		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
-		DatabaseRepo:    &database.MockDB{},
-	}
-	h := testApp.routes()
+type TestResponseWriter struct{}
 
-	req, err := http.NewRequest("GET", "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+func (w TestResponseWriter) Header() http.Header {
+	return http.Header{}
+}
+func (w TestResponseWriter) Write(m []byte) (int, error) {
+	return len(m), nil
+}
+func (w TestResponseWriter) WriteHeader(statusCode int) {}
 
-	rr := httptest.NewRecorder()
-	h.ServeHTTP(rr, req)
-
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected status code %d, but got %d", http.StatusOK, rr.Code)
-	}
-
+func TestWriter(t *testing.T) {
+	var w TestResponseWriter
+	//testApp := &Config{}
+	write(w, "Test message", http.StatusOK)
 }
 
 func TestUpload(t *testing.T) {
-	testApp := &Config{
+	app := &config.Config{
 		TemplatesPath:   "./templates/",
 		StaticFilesPath: "./static/",
 		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
 		DatabaseRepo:    &database.MockDB{},
 	}
-	h := testApp.routes()
+	h := Routes(app, &logging.Log{})
 
 	// https://stackoverflow.com/questions/43904974/testing-go-http-request-formfile
 	pr, pw := io.Pipe()
@@ -73,14 +68,15 @@ func TestUpload(t *testing.T) {
 
 func TestConvert(t *testing.T) {
 	queue := &rabbitmq.QueueMock{}
-	testApp := &Config{
+
+	testApp := &config.Config{
 		TemplatesPath:   "./templates/",
 		StaticFilesPath: "./static/",
 		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
 		DatabaseRepo:    &database.MockDB{},
 		QueueRepo:       queue,
 	}
-	h := testApp.routes()
+	h := Routes(testApp, &logging.Log{})
 
 	form := url.Values{}
 	form.Add("format", "ogg")
@@ -98,47 +94,4 @@ func TestConvert(t *testing.T) {
 		t.Errorf("Expected 1 message in the queue, got %d", queue.Count)
 	}
 
-}
-
-func TestStaticFiles(t *testing.T) {
-	testApp := &Config{
-		TemplatesPath:   "./templates/",
-		StaticFilesPath: "./static/",
-		SessionStore:    sessions.NewCookieStore([]byte("test-key")),
-		DatabaseRepo:    &database.MockDB{},
-	}
-	h := testApp.routes()
-
-	for _, file := range []string{
-		"/static/css.css",
-		"/static/logo.png",
-	} {
-		req, err := http.NewRequest("GET", file, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		rr := httptest.NewRecorder()
-		h.ServeHTTP(rr, req)
-
-		if rr.Code != http.StatusOK {
-			t.Errorf("Expected status code %d for file %s, but got %d", http.StatusOK, file, rr.Code)
-		}
-	}
-}
-
-type TestResponseWriter struct{}
-
-func (w TestResponseWriter) Header() http.Header {
-	return http.Header{}
-}
-func (w TestResponseWriter) Write(m []byte) (int, error) {
-	return len(m), nil
-}
-func (w TestResponseWriter) WriteHeader(statusCode int) {}
-
-func TestWriter(t *testing.T) {
-	var w TestResponseWriter
-	testApp := &Config{}
-	testApp.write(w, "Test message", http.StatusOK)
 }

@@ -1,99 +1,61 @@
 package main
 
 import (
-	"errors"
 	"net/http"
-	"time"
 
-	"github.com/gorilla/sessions"
+	"github.com/nu12/audio-gonverter/internal/config"
 	"github.com/nu12/audio-gonverter/internal/database"
 	"github.com/nu12/audio-gonverter/internal/ffmpeg"
+	"github.com/nu12/audio-gonverter/internal/helper"
 	"github.com/nu12/audio-gonverter/internal/logging"
 	"github.com/nu12/audio-gonverter/internal/rabbitmq"
-	"github.com/nu12/audio-gonverter/internal/repository"
+	"github.com/nu12/audio-gonverter/internal/web"
 )
-
-type Config struct {
-	TemplatesPath       string
-	StaticFilesPath     string
-	SessionStore        *sessions.CookieStore
-	DatabaseRepo        repository.DatabaseRepository
-	QueueRepo           repository.QueueRepository
-	ConvertionToolRepo  repository.ConvertionToolRepo
-	Env                 map[string]string
-	MaxFilesPerUser     int
-	MaxFileSize         int
-	MaxTotalSizePerUser int
-	OriginFileExtention []string
-	TargetFileExtention []string
-	OriginalPath        string
-	ConvertedPath       string
-}
 
 var log = logging.NewLogger()
 
 func main() {
 	log.Info("Starting audio-gonverter")
-
-	app := Config{
-		TemplatesPath:   "./cmd/templates/",
-		StaticFilesPath: "./cmd/static/",
-		Env:             map[string]string{},
-	}
-
-	err := app.loadEnv([]string{
-		"WEB_ENABLED",
-		"WORKER_ENABLED",
-		"REDIS_HOST",
-		"REDIS_PORT",
-		"QUEUE_CONNECTION_STRING",
-		"COMMIT",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	app.DatabaseRepo = database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")
-
-	if err := app.loadConfigs(); err != nil {
-		log.Fatal(err)
-	}
-	app.ConvertionToolRepo = &ffmpeg.Ffmpeg{
-		InputPath:  app.OriginalPath,
-		OutputPath: app.ConvertedPath,
-	}
-
 	q := &rabbitmq.RabbitQueue{}
-	err = errors.New("No queue available")
-	for i := 1; i <= 10; i++ {
-		q, err = rabbitmq.Connect(app.Env["QUEUE_CONNECTION_STRING"])
-		if err != nil {
-			time.Sleep(time.Duration(i) * time.Second)
-			log.Warning("Queue not ready, waiting...")
-			continue
-		}
-		break
-	}
 
-	if err != nil {
-		log.Fatal(err)
+	app := config.
+		New("./cmd/templates/", "./cmd/static/").
+		LoadEnv([]string{
+			"WEB_ENABLED",
+			"WORKER_ENABLED",
+			"REDIS_HOST",
+			"REDIS_PORT",
+			"QUEUE_CONNECTION_STRING",
+			"COMMIT",
+		}).
+		LoadConfigs()
+
+	app.WithDatabaseRepo(database.NewRedis(app.Env["REDIS_HOST"], app.Env["REDIS_PORT"], "")).
+		WithConvertionToolRepo(&ffmpeg.Ffmpeg{
+			InputPath:  app.OriginalPath,
+			OutputPath: app.ConvertedPath,
+		}).
+		ConnectQueueRepo(q, app.Env["QUEUE_CONNECTION_STRING"])
+
+	if app.Err() != nil {
+		log.Fatal(app.Err())
 	}
-	app.QueueRepo = q
 	defer q.Connection.Close()
 	defer q.Channel.Close()
 
 	c := make(chan error, 1)
+	helper := &helper.Helper{Config: app, Log: log}
 
 	if app.Env["WEB_ENABLED"] == "true" {
 		s := &http.Server{
 			Addr:    "0.0.0.0:8080",
-			Handler: app.routes(),
+			Handler: web.Routes(app, log),
 		}
-		go app.startWeb(c, s)
+		go helper.StartWeb(c, s)
 	}
 
 	if app.Env["WORKER_ENABLED"] == "true" {
-		go app.startWorker(c)
+		go helper.StartWorker(c)
 	}
 
 	// Panic with error
