@@ -51,8 +51,7 @@ func TestStartWeb(t *testing.T) {
 
 	t.Run("Start Web Service", func(t *testing.T) {
 		testServer := &TestServer{}
-		h := &Helper{}
-		go h.WithConfig(app).StartWeb(c, testServer)
+		go WithConfig(app).StartWeb(c, testServer)
 
 		select {
 		case err := <-c:
@@ -80,8 +79,7 @@ func TestAddFile(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	h := &Helper{}
-	h.WithConfig(app).addFile(user, file)
+	WithConfig(app).addFile(user, file)
 
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -109,8 +107,7 @@ func TestAddFilesAndSave(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 
-	h := &Helper{}
-	h.WithConfig(app).AddFilesAndSave(user, files)
+	WithConfig(app).AddFilesAndSave(user, files)
 
 	if user.IsUploading {
 		t.Errorf("Error uploading files")

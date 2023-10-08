@@ -52,14 +52,12 @@ func (handler *Handler) render(w http.ResponseWriter, templateName string, td Te
 func (handler *Handler) Home(w http.ResponseWriter, r *http.Request) {
 	handler.Config.Log.Debug("Home page")
 	user := user.FromRequest(r)
-	h := &helper.Helper{}
-	h.WithConfig(handler.Config)
 
 	td := TemplateData{
 		Commit:     handler.Config.Env["COMMIT"],
 		Files:      user.Files,
 		FilesCount: len(user.Files),
-		Messages:   h.GetFlash(user),
+		Messages:   helper.WithConfig(handler.Config).GetFlash(user),
 		Accepted:   helper.SliceToString(handler.Config.OriginFileExtention),
 		Formats:    handler.Config.TargetFileExtention,
 	}
@@ -70,8 +68,7 @@ func (handler *Handler) Home(w http.ResponseWriter, r *http.Request) {
 func (handler *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 	handler.Config.Log.Debug("Upload")
 
-	h := &helper.Helper{}
-	h.WithConfig(handler.Config)
+	h := helper.WithConfig(handler.Config)
 
 	if err := r.ParseMultipartForm(50 << 20); err != nil {
 		handler.Config.Log.Error(err)
@@ -101,8 +98,8 @@ func (handler *Handler) Upload(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) Convert(w http.ResponseWriter, r *http.Request) {
 	handler.Config.Log.Debug("Convert")
-	h := &helper.Helper{}
-	h.WithConfig(handler.Config)
+
+	h := helper.WithConfig(handler.Config)
 
 	err := r.ParseForm()
 
@@ -141,8 +138,8 @@ func (handler *Handler) Convert(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	handler.Config.Log.Debug("Delete page")
-	h := &helper.Helper{}
-	h.WithConfig(handler.Config)
+
+	h := helper.WithConfig(handler.Config)
 
 	uuid := r.URL.Query().Get("uuid")
 	user := user.FromRequest(r)
@@ -160,8 +157,7 @@ func (handler *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (handler *Handler) DeleteAll(w http.ResponseWriter, r *http.Request) {
 	handler.Config.Log.Debug("DeleteAll page")
-	h := &helper.Helper{}
-	h.WithConfig(handler.Config)
+	h := helper.WithConfig(handler.Config)
 	user := user.FromRequest(r).ClearFiles()
 
 	if err := h.SaveUser(user); err != nil {
@@ -176,6 +172,16 @@ func (handler *Handler) Download(w http.ResponseWriter, r *http.Request) {
 	handler.Config.Log.Debug("Download page")
 
 	uuid := r.URL.Query().Get("uuid")
+
+	// Envisioned pseudo-code
+	// declare dir, files, f
+	// r := &Register{}
+	// r.Run(
+	//	func(){dir, r.Err = os.Open(handler.Config.ConvertedPath + "/" + uuid)},
+	//	func(){files, r.Err = dir.Readdirnames(-1)},
+	//	func(){f, r.Err = os.Open(handler.Config.ConvertedPath + "/" + uuid + "/" + files[0])},
+	// ).IfError(func(){write(w, err.Error(), http.StatusInternalServerError)}).
+	// Otherwise(_sendFileToUser)
 	dir, err := os.Open(handler.Config.ConvertedPath + "/" + uuid)
 	if err != nil {
 		write(w, err.Error(), http.StatusInternalServerError)

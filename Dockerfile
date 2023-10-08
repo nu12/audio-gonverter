@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN go build -o gonverter cmd/main.go  cmd/helpers.go cmd/routes.go cmd/handlers.go
+RUN go build -o gonverter cmd/main.go
 
 FROM alpine:3.18.4
 LABEL org.opencontainers.image.source https://github.com/nu12/audio-gonverter

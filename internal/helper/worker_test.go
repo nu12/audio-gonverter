@@ -22,8 +22,7 @@ func TestStartWorker(t *testing.T) {
 
 	t.Run("Start Worker", func(t *testing.T) {
 
-		h := &Helper{}
-		go h.WithConfig(app).StartWorker(c)
+		go WithConfig(app).StartWorker(c)
 
 		select {
 		case err := <-c:

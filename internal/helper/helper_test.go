@@ -19,8 +19,8 @@ func TestFlash(t *testing.T) {
 
 	expected := "Test message"
 
-	h := &Helper{}
-	h.WithConfig(testApp).AddFlash(user, expected)
+	h := WithConfig(testApp)
+	h.AddFlash(user, expected)
 	got := h.GetFlash(user)[0]
 
 	if expected != got {

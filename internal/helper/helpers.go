@@ -11,9 +11,10 @@ type Helper struct {
 	Config *config.Config
 }
 
-func (h *Helper) WithConfig(c *config.Config) *Helper {
-	h.Config = c
-	return h
+func WithConfig(c *config.Config) *Helper {
+	return &Helper{
+		Config: c,
+	}
 }
 
 func (h *Helper) SaveUser(user *user.User) error {

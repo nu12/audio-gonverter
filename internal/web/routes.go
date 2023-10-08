@@ -39,8 +39,7 @@ func Routes(app *config.Config) http.Handler {
 func (m *Middleware) CreateSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		helper := &helper.Helper{}
-		helper.WithConfig(m.Config)
+		h := helper.WithConfig(m.Config)
 
 		session, err := m.Config.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
@@ -64,7 +63,7 @@ func (m *Middleware) CreateSessionAndUser(next http.Handler) http.Handler {
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
 		}
-		if err := helper.SaveUser(user); err != nil {
+		if err := h.SaveUser(user); err != nil {
 			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)
 			return
@@ -76,8 +75,7 @@ func (m *Middleware) CreateSessionAndUser(next http.Handler) http.Handler {
 func (m *Middleware) LoadSessionAndUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		helper := &helper.Helper{}
-		helper.WithConfig(m.Config)
+		h := helper.WithConfig(m.Config)
 
 		session, err := m.Config.SessionStore.Get(r, "audio-gonverter")
 		if err != nil {
@@ -88,7 +86,7 @@ func (m *Middleware) LoadSessionAndUser(next http.Handler) http.Handler {
 		e, err := m.Config.DatabaseRepo.Exist(session.Values["user"].(string))
 		if !e && err == nil {
 			u := &user.User{UUID: session.Values["user"].(string), Files: []*file.File{}}
-			err2 := helper.SaveUser(u)
+			err2 := h.SaveUser(u)
 			if err2 != nil {
 				m.Config.Log.Error(err)
 				write(w, err2.Error(), http.StatusInternalServerError)
@@ -101,7 +99,7 @@ func (m *Middleware) LoadSessionAndUser(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := helper.LoadUser(session.Values["user"].(string))
+		user, err := h.LoadUser(session.Values["user"].(string))
 		if err != nil {
 			m.Config.Log.Error(err)
 			write(w, "Session error. Cleaning the cache may solve the issue", http.StatusInternalServerError)

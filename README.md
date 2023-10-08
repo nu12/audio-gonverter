@@ -42,7 +42,7 @@ fi
 Run locally with:
 ```bash
 source .env
-go run cmd/main.go cmd/helpers.go cmd/routes.go
+go run cmd/main.go
 ```
 
 Or using docker-compose:
